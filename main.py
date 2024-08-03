@@ -31,58 +31,52 @@ def get():
 
 @rt("/bookings/add")
 def get(error_msg=""):
-    return Div(
-        Form(
-            booking_form(Booking()),
-            hx_target="this",
-            hx_swap="outerHTML",
-            hx_post="/bookings/add",
-        ),
-    )
+    return booking_form(Booking(), "/bookings/add")
 
 
 @rt("/bookings/edit/{id}")
 def get(id: int):
-    return Div(
-        Form(
-            booking_form(bookings[id]),
-            hx_target="this",
-            hx_swap="outerHTML",
-            hx_post=f"/bookings/edit/{id}",
-        ),
-    )
+    return (booking_form(bookings[id], "/bookings/edit"),)
 
 
 @app.post("/bookings/add")
 def add_new_booking(booking: Booking):
     is_valid, msg = validate_booking(booking)
+    booking.id = None
     if not is_valid:
-        return booking_form(booking, error_msg=msg)
+        return msg
     bookings.insert(booking)
-    return RedirectResponse("/", status_code=303)
+    return Response(headers={"HX-Location": "/"})
 
 
-@app.post("/bookings/edit/{id}")
+@app.post("/bookings/edit")
 def edit_booking(booking: Booking, id: int):
     is_valid, msg = validate_booking(booking)
     if not is_valid:
-        return booking_form(booking, error_msg=msg)
+        return booking_form(booking, "/bookings/edit")
     bookings.update(booking)
-    return RedirectResponse("/", status_code=303)
+    return Response(headers={"HX-Location": "/"})
+
+
+@app.post("/bookings/validate")
+def edit_booking(booking: Booking):
+    is_valid, msg = validate_booking(booking)
+    if not is_valid:
+        return msg
 
 
 @app.delete("/bookings/{id}")
 def delete_booking(id: int):
     bookings.delete(id)
-    return RedirectResponse("/", status_code=303)
+    return Response(headers={"HX-Location": "/"})
 
 
+@app.post("/bookings/validate")
 def validate_booking(booking: Booking) -> (bool, Optional[str]):
     if not booking.date_from or not booking.date_to:
         return False, "Pls add booking duration"
     if booking.date_from > booking.date_to:
         return False, "Start time should be before end time"
-    print(booking)
     for b in bookings(where=f"id != {booking.id}"):
         if (
             b.date_from < booking.date_from < b.date_to
@@ -94,8 +88,8 @@ def validate_booking(booking: Booking) -> (bool, Optional[str]):
     return True, None
 
 
-def booking_form(booking: Booking, error_msg=""):
-    return Group(
+def booking_form(booking: Booking, post_target):
+    return Form(
         Group(
             Div(
                 Label("From", _for="date_from"),
@@ -110,8 +104,10 @@ def booking_form(booking: Booking, error_msg=""):
         Select(*[Option(u.name) for u in users()], name="user"),
         Input(type="text", name="id", value=booking.id, style="display:none"),
         Input(type="text", name="note", placeholder="note", value=booking.note),
+        Div(id="indicator"),
         Button("Add" if booking.id is None else "Update"),
-        Div(error_msg),
+        hx_post=post_target,
+        hx_target="#indicator",
         style="flex-direction: column",
     )
 
@@ -139,5 +135,6 @@ def bookings_table():
             for b in bookings()
         ],
     )
+
 
 serve()
