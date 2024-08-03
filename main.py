@@ -24,9 +24,8 @@ Booking, User = bookings.dataclass(), users.dataclass()
 def get():
     return Div(
         H1("Car pool"),
-        Button("New booking", hx_get="/bookings/add", hx_target="body"),
+        A("New booking", href="/bookings/add"),
         bookings_table(),
-        #    calendar()
     )
 
 
@@ -34,42 +33,40 @@ def get():
 def get(error_msg=""):
     return Div(
         Form(
-            booking_form(Booking(), error_msg=""),
+            booking_form(Booking()),
             hx_target="this",
             hx_swap="outerHTML",
             hx_post="/bookings/add",
-            hx_push_url="/",
         ),
-        Div(error_msg),
     )
 
 
 @rt("/bookings/edit/{id}")
-def get(id: int, error_msg=""):
+def get(id: int):
     return Div(
         Form(
-            booking_form(bookings[id], error_msg),
+            booking_form(bookings[id]),
             hx_target="this",
             hx_swap="outerHTML",
             hx_post=f"/bookings/edit/{id}",
-            hx_push_url="/",
         ),
-        Div(error_msg),
     )
 
 
 @app.post("/bookings/add")
 def add_new_booking(booking: Booking):
-    if not booking.date_from or not booking.date_to:
-        return booking_form(booking, error_msg="Pls add from/to date")
+    is_valid, msg = validate_booking(booking)
+    if not is_valid:
+        return booking_form(booking, error_msg=msg)
     bookings.insert(booking)
     return RedirectResponse("/", status_code=303)
 
 
 @app.post("/bookings/edit/{id}")
 def edit_booking(booking: Booking, id: int):
-    if not booking.date_from or not booking.date_to:
-        return booking_form(booking, error_msg="Pls add from/to date")
+    is_valid, msg = validate_booking(booking)
+    if not is_valid:
+        return booking_form(booking, error_msg=msg)
     bookings.update(booking)
     return RedirectResponse("/", status_code=303)
 
@@ -80,14 +77,40 @@ def delete_booking(id: int):
     return RedirectResponse("/", status_code=303)
 
 
+def validate_booking(booking: Booking) -> (bool, Optional[str]):
+    if not booking.date_from or not booking.date_to:
+        return False, "Pls add booking duration"
+    if booking.date_from > booking.date_to:
+        return False, "Start time should be before end time"
+    print(booking)
+    for b in bookings(where=f"id != {booking.id}"):
+        if (
+            b.date_from < booking.date_from < b.date_to
+            or b.date_from < booking.date_to < b.date_to
+            or booking.date_from < b.date_to < booking.date_to
+            or booking.date_from < b.date_from < booking.date_to
+        ):
+            return False, "There's already a booking for this time span"
+    return True, None
+
+
 def booking_form(booking: Booking, error_msg=""):
     return Group(
+        Group(
+            Div(
+                Label("From", _for="date_from"),
+                Input(type="date", name="date_from", value=booking.date_from),
+            ),
+            Div(
+                Label("To", _for="date_to"),
+                Input(type="date", name="date_to", value=booking.date_to),
+            ),
+            style="flex-direction: row",
+        ),
         Select(*[Option(u.name) for u in users()], name="user"),
         Input(type="text", name="id", value=booking.id, style="display:none"),
-        Input(type="date", name="date_from", value=booking.date_from),
-        Input(type="date", name="date_to", value=booking.date_to),
         Input(type="text", name="note", placeholder="note", value=booking.note),
-        Button("Update" if booking.id else "Add"),
+        Button("Add" if booking.id is None else "Update"),
         Div(error_msg),
         style="flex-direction: column",
     )
@@ -116,32 +139,5 @@ def bookings_table():
             for b in bookings()
         ],
     )
-
-
-# def calendar(): return Iframe(src=f'https://calendar.google.com/calendar/embed?src={get_calendar_id()}&ctz=Europe%2FStockholm', width="100%", height="600")
-
-# def get_calendar_id():
-#    return GoogleCalendar(credentials=credentials).get_calendar().calendar_id
-
-
-# def update_calendar():
-#    gc = GoogleCalendar(credentials=credentials)
-#    events = list(gc.get_events())
-#
-#    start = date(2024,8,1)
-#    end = date(2024,8,2)
-#    event = Event('Vacation',
-#                  visibility="public",
-#              start=start,
-#              end=end)
-#    gc.add_event(event)
-#    print(events)
-#    for event in gc.get_events():
-#        print(event)
-#
-
-
-# update_calendar()
-
 
 serve()
