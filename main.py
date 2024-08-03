@@ -5,7 +5,7 @@ import os
 
 load_dotenv()
 
-app, rt = fast_app(live=True)
+app, rt = fast_app(live=os.getenv("DEBUG") is not None)
 db = database("data/carpool.db")
 
 users, bookings = db.t.users, db.t.bookings
