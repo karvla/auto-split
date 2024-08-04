@@ -3,22 +3,6 @@ from fasthtml.common import (
     database,
     Beforeware,
     RedirectResponse,
-    Response,
-    serve,
-    Div,
-    Form,
-    Group,
-    Titled,
-    A,
-    Table,
-    Tr,
-    Td,
-    Th,
-    Button,
-    Input,
-    Label,
-    Select,
-    Option,
 )
 from datetime import datetime
 import os
@@ -45,5 +29,3 @@ if users not in db.t:
         id=int, note=str, date_from=datetime, date_to=datetime, user=str, pk="id"
     )
 Booking, User = bookings.dataclass(), users.dataclass()
-
-
