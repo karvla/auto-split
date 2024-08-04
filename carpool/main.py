@@ -24,74 +24,11 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 from datetime import datetime
 import os
+from app import app, rt, db, Booking, User, bookings, users
+import login
 
 load_dotenv()
 
-
-def before(req, sess):
-    auth = req.scope["auth"] = sess.get("auth", None)
-    if not auth:
-        RedirectResponse("/login", status_code=303)
-
-
-beforeware = Beforeware(before, skip=["/login"])
-use_live_reload = os.getenv("DEBUG") is not None
-app, rt = fast_app(live=use_live_reload, before=beforeware)
-
-db = database("data/carpool.db")
-users, bookings = db.t.users, db.t.bookings
-if users not in db.t:
-    users.create(name=str, pk="name")
-    for user in os.getenv("USERS").split(","):
-        users.insert(name=user)
-
-    bookings.create(
-        id=int, note=str, date_from=datetime, date_to=datetime, user=str, pk="id"
-    )
-Booking, User = bookings.dataclass(), users.dataclass()
-
-
-@dataclass
-class Credentials:
-    name: str
-    password: str
-
-
-@rt("/login")
-def get():
-    return Titled(
-        "Login",
-        Form(
-            Input(id="name", placeholder="Name", name="name"),
-            Input(
-                id="password", type="password", placeholder="Password", name="password"
-            ),
-            Button("login"),
-            action="/login",
-            method="post",
-        ),
-    )
-
-
-@app.post("/login")
-def login(credentials: Credentials, sess):
-    if not credentials.name or not credentials.password:
-        return RedirectResponse("/login", status_code=303)
-
-    # TODO: Make authentication secure
-    if not (
-        credentials.name == os.getenv("ADMIN_USERNAME")
-        and credentials.password == os.getenv("ADMIN_PASSWORD")
-    ):
-        return RedirectResponse("/login", status_code=303)
-    sess["auth"] = credentials.name
-    return RedirectResponse("/", status_code=303)
-
-
-@rt("/logout")
-def get(sess):
-    sess["auth"] = None
-    return RedirectResponse("/", status_code=303)
 
 
 @rt("/")
@@ -209,7 +146,6 @@ def bookings_table():
             for b in bookings()
         ],
     )
-
 
 if __name__ == "__main__":
     serve()
