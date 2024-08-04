@@ -1,11 +1,42 @@
-from fasthtml.common import *
+from fasthtml.common import (
+    fast_app,
+    database,
+    Beforeware,
+    RedirectResponse,
+    Response,
+    serve,
+    Div,
+    Form,
+    Group,
+    Titled,
+    A,
+    Table,
+    Tr,
+    Td,
+    Th,
+    Button,
+    Input,
+    Label,
+    Select,
+    Option,
+)
+from dataclasses import dataclass
 from dotenv import load_dotenv
 from datetime import datetime
 import os
 
 load_dotenv()
 
-app, rt = fast_app(live=os.getenv("DEBUG") is not None)
+
+def before(req, sess):
+    auth = req.scope["auth"] = sess.get("auth", None)
+    if not auth:
+        return login_redir
+
+
+beforeware = Beforeware(before, skip=["/login"])
+use_live_reload = os.getenv("DEBUG") is not None
+app, rt = fast_app(live=use_live_reload, before=beforeware)
 db = database("data/carpool.db")
 
 users, bookings = db.t.users, db.t.bookings
@@ -19,11 +50,56 @@ if users not in db.t:
     )
 Booking, User = bookings.dataclass(), users.dataclass()
 
+login_redir = RedirectResponse("/login", status_code=303)
+
+
+@rt("/login")
+def get():
+    return Titled(
+        "Login",
+        Form(
+            Input(id="name", placeholder="Name", name="name"),
+            Input(
+                id="password", type="password", placeholder="Password", name="password"
+            ),
+            Button("login"),
+            action="/login",
+            method="post",
+        ),
+    )
+
+
+@dataclass
+class Credentials:
+    name: str
+    password: str
+
+
+@app.post("/login")
+def login(credentials: Credentials, sess):
+    if not credentials.name or not credentials.password:
+        return login_redir
+
+    # TODO: Make authentication secure
+    if not (
+        credentials.name == os.getenv("ADMIN_USERNAME")
+        and credentials.password == os.getenv("ADMIN_PASSWORD")
+    ):
+        return login_redir
+    sess["auth"] = credentials.name
+    return RedirectResponse("/", status_code=303)
+
+
+@rt("/logout")
+def get(sess):
+    sess["auth"] = None
+    return RedirectResponse("/", status_code=303)
+
 
 @rt("/")
 def get():
-    return Div(
-        H1("Car pool"),
+    return Titled(
+        "Car pool",
         A("New booking", href="/bookings/add"),
         bookings_table(),
     )
@@ -72,7 +148,7 @@ def delete_booking(id: int):
 
 
 @app.post("/bookings/validate")
-def validate_booking(booking: Booking) -> (bool, Optional[str]):
+def validate_booking(booking: Booking) -> (bool, str | None):
     if not booking.date_from or not booking.date_to:
         return False, "Pls add booking duration"
     if booking.date_from > booking.date_to:
