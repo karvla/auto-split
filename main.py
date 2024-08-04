@@ -31,14 +31,14 @@ load_dotenv()
 def before(req, sess):
     auth = req.scope["auth"] = sess.get("auth", None)
     if not auth:
-        return login_redir
+        RedirectResponse("/login", status_code=303)
 
 
 beforeware = Beforeware(before, skip=["/login"])
 use_live_reload = os.getenv("DEBUG") is not None
 app, rt = fast_app(live=use_live_reload, before=beforeware)
-db = database("data/carpool.db")
 
+db = database("data/carpool.db")
 users, bookings = db.t.users, db.t.bookings
 if users not in db.t:
     users.create(name=str, pk="name")
@@ -50,7 +50,11 @@ if users not in db.t:
     )
 Booking, User = bookings.dataclass(), users.dataclass()
 
-login_redir = RedirectResponse("/login", status_code=303)
+
+@dataclass
+class Credentials:
+    name: str
+    password: str
 
 
 @rt("/login")
@@ -69,23 +73,17 @@ def get():
     )
 
 
-@dataclass
-class Credentials:
-    name: str
-    password: str
-
-
 @app.post("/login")
 def login(credentials: Credentials, sess):
     if not credentials.name or not credentials.password:
-        return login_redir
+        return RedirectResponse("/login", status_code=303)
 
     # TODO: Make authentication secure
     if not (
         credentials.name == os.getenv("ADMIN_USERNAME")
         and credentials.password == os.getenv("ADMIN_PASSWORD")
     ):
-        return login_redir
+        return RedirectResponse("/login", status_code=303)
     sess["auth"] = credentials.name
     return RedirectResponse("/", status_code=303)
 
@@ -213,4 +211,5 @@ def bookings_table():
     )
 
 
-serve()
+if __name__ == "__main__":
+    serve()
