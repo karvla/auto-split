@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
-from app import serve, app, rt
-from fasthtml.common import Titled, A
+from app import app, rt
+from fasthtml.common import Titled, A, serve
 import bookings
 import login
 
