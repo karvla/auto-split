@@ -3,6 +3,7 @@ from fasthtml.common import (
     database,
     Beforeware,
     RedirectResponse,
+    Response,
 )
 from datetime import datetime
 import os
@@ -19,13 +20,25 @@ use_live_reload = os.getenv("DEBUG") is not None
 app, rt = fast_app(live=use_live_reload, before=beforeware)
 
 db = database("data/carpool.db")
-users, bookings = db.t.users, db.t.bookings
+
+users = db.t.users
 if users not in db.t:
     users.create(name=str, pk="name")
     for user in os.getenv("USERS").split(","):
         users.insert(name=user)
+User = users.dataclass()
 
+bookings = db.t.bookings
+if bookings not in db.t:
     bookings.create(
         id=int, note=str, date_from=datetime, date_to=datetime, user=str, pk="id"
     )
-Booking, User = bookings.dataclass(), users.dataclass()
+Booking = bookings.dataclass()
+
+
+expenses = db.t.expenses
+if expenses not in db.t:
+    expenses.create(
+        id=int, note=str, date=datetime, currency=str, cost=int, user=str, pk="id"
+    )
+Expense = expenses.dataclass()
