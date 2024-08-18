@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from app import app, rt
 from fasthtml.common import Titled, A, serve
 import bookings
+import expenses
 import login
 
 load_dotenv()
