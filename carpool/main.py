@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from app import app, rt
-from fasthtml.common import Titled, A, serve
+from fasthtml.common import Titled, A, serve, Li, Ul
 import bookings
 import expenses
 import login
@@ -12,8 +12,10 @@ load_dotenv()
 def get():
     return Titled(
         "Car pool",
-        A("New booking", href="/bookings/add"),
-        bookings.bookings_table(),
+        Ul(
+            Li(A("Bookings", href="/bookings")),
+            Li(A("Expenses", href="/expenses")),
+        ),
     )
 
 

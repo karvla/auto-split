@@ -1,6 +1,7 @@
 from app import rt, app, bookings, Booking, users
 from fasthtml.common import (
     Response,
+    Titled,
     Div,
     Form,
     Group,
@@ -17,14 +18,19 @@ from fasthtml.common import (
 )
 
 
+@rt("/bookings")
+def get():
+    return bookings_table()
+
+
 @rt("/bookings/add")
 def get(error_msg=""):
-    return booking_form(Booking(), "/bookings/add")
+    return booking_form(Booking(), "Add booking", "/bookings/add")
 
 
 @rt("/bookings/edit/{id}")
 def get(id: int):
-    return (booking_form(bookings[id], "/bookings/edit"),)
+    return (booking_form(bookings[id], "Edit booking", "/bookings/edit"),)
 
 
 @app.post("/bookings/add")
@@ -34,16 +40,16 @@ def add_new_booking(booking: Booking):
     if not is_valid:
         return msg
     bookings.insert(booking)
-    return Response(headers={"HX-Location": "/"})
+    return Response(headers={"HX-Location": "/bookings"})
 
 
 @app.post("/bookings/edit")
 def edit_booking(booking: Booking, id: int):
     is_valid, msg = validate_booking(booking)
     if not is_valid:
-        return booking_form(booking, "/bookings/edit")
+        return booking_form(booking, "Edit booking", "/bookings/edit")
     bookings.update(booking)
-    return Response(headers={"HX-Location": "/"})
+    return Response(headers={"HX-Location": "/bookings"})
 
 
 @app.post("/bookings/validate")
@@ -56,7 +62,7 @@ def edit_booking(booking: Booking):
 @app.delete("/bookings/{id}")
 def delete_booking(id: int):
     bookings.delete(id)
-    return Response(headers={"HX-Location": "/"})
+    return Response(headers={"HX-Location": "/bookings"})
 
 
 @app.post("/bookings/validate")
@@ -76,50 +82,57 @@ def validate_booking(booking: Booking) -> (bool, str | None):
     return True, None
 
 
-def booking_form(booking: Booking, post_target):
-    return Form(
-        Group(
-            Div(
-                Label("From", _for="date_from"),
-                Input(type="date", name="date_from", value=booking.date_from),
+def booking_form(booking: Booking, title, post_target):
+    return Titled(
+        title,
+        Form(
+            Group(
+                Div(
+                    Label("From", _for="date_from"),
+                    Input(type="date", name="date_from", value=booking.date_from),
+                ),
+                Div(
+                    Label("To", _for="date_to"),
+                    Input(type="date", name="date_to", value=booking.date_to),
+                ),
+                style="flex-direction: row",
             ),
-            Div(
-                Label("To", _for="date_to"),
-                Input(type="date", name="date_to", value=booking.date_to),
-            ),
-            style="flex-direction: row",
+            Select(*[Option(u.name) for u in users()], name="user"),
+            Input(type="text", name="id", value=booking.id, style="display:none"),
+            Input(type="text", name="note", placeholder="note", value=booking.note),
+            Div(id="indicator"),
+            Button("Save"),
+            hx_post=post_target,
+            hx_target="#indicator",
+            style="flex-direction: column",
         ),
-        Select(*[Option(u.name) for u in users()], name="user"),
-        Input(type="text", name="id", value=booking.id, style="display:none"),
-        Input(type="text", name="note", placeholder="note", value=booking.note),
-        Div(id="indicator"),
-        Button("Add" if booking.id is None else "Update"),
-        hx_post=post_target,
-        hx_target="#indicator",
-        style="flex-direction: column",
     )
 
 
 def bookings_table():
-    return Table(
-        Tr(Th("Note"), Th("From"), Th("To"), Th("User"), Th(), Th()),
-        *[
-            Tr(
-                Td(b.note),
-                Td(b.date_from),
-                Td(b.date_to),
-                Td(b.user),
-                Td(A("Edit", href=f"/bookings/edit/{b.id}")),
-                Td(
-                    Button(
-                        "Delete",
-                        hx_delete=f"/bookings/{b.id}",
-                        hx_confirm="Are you sure you want to delete this booking?",
-                        hx_swap="delete",
-                        hx_target="closest tr",
-                    )
-                ),
-            )
-            for b in bookings()
-        ],
+    return Titled(
+        "Bookings",
+        A("New booking", href="/bookings/add"),
+        Table(
+            Tr(Th("Note"), Th("From"), Th("To"), Th("User"), Th(), Th()),
+            *[
+                Tr(
+                    Td(b.note),
+                    Td(b.date_from),
+                    Td(b.date_to),
+                    Td(b.user),
+                    Td(A("Edit", href=f"/bookings/edit/{b.id}")),
+                    Td(
+                        Button(
+                            "Delete",
+                            hx_delete=f"/bookings/{b.id}",
+                            hx_confirm="Are you sure you want to delete this booking?",
+                            hx_swap="delete",
+                            hx_target="closest tr",
+                        )
+                    ),
+                )
+                for b in bookings()
+            ],
+        ),
     )
