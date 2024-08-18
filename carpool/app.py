@@ -3,10 +3,36 @@ from fasthtml.common import (
     database,
     Beforeware,
     RedirectResponse,
-    Response,
+    Main,
+    Nav,
+    H1,
+    Ul,
+    Title,
+    Li,
+    A,
 )
 from datetime import datetime
 import os
+
+
+def Page(title: str, *c):
+    pages = [
+        ("Bookings", "/bookings"),
+        ("Expenses", "/expenses"),
+    ]
+    title = (f"Car pool - {title}",)
+    nav_links = [
+        Li(A(t, href=l, cls="contrast" + " outline" if t == title else ""))
+        for t, l in pages
+    ]
+    return (
+        Title(title),
+        Main(
+            Nav(Ul(Li(H1(title))), Ul(*nav_links)),
+            *c,
+            cls="container",
+        ),
+    )
 
 
 def before(req, sess):

@@ -1,4 +1,4 @@
-from app import rt, app, expenses, Expense, users
+from app import rt, app, expenses, Expense, users, Page
 from datetime import datetime
 import os
 from fasthtml.common import (
@@ -21,7 +21,7 @@ from fasthtml.common import (
 
 @rt("/expenses")
 def get():
-    return Titled(
+    return Page(
         "Expenses",
         A("Add expense", href="/expenses/add"),
         Table(
@@ -45,6 +45,7 @@ def get():
                 )
                 for e in expenses()
             ],
+            cls="striped",
         ),
     )
 

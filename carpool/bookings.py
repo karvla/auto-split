@@ -1,4 +1,4 @@
-from app import rt, app, bookings, Booking, users
+from app import rt, app, bookings, Booking, users, Page
 from fasthtml.common import (
     Response,
     Titled,
@@ -110,29 +110,32 @@ def booking_form(booking: Booking, title, post_target):
 
 
 def bookings_table():
-    return Titled(
+    return Page(
         "Bookings",
         A("New booking", href="/bookings/add"),
-        Table(
-            Tr(Th("Note"), Th("From"), Th("To"), Th("User"), Th(), Th()),
-            *[
-                Tr(
-                    Td(b.note),
-                    Td(b.date_from),
-                    Td(b.date_to),
-                    Td(b.user),
-                    Td(A("Edit", href=f"/bookings/edit/{b.id}")),
-                    Td(
-                        Button(
-                            "Delete",
-                            hx_delete=f"/bookings/{b.id}",
-                            hx_confirm="Are you sure you want to delete this booking?",
-                            hx_swap="delete",
-                            hx_target="closest tr",
-                        )
-                    ),
-                )
-                for b in bookings()
-            ],
+        Div(
+            Table(
+                Tr(Th("Note"), Th("When"), Th("User"), Th()),
+                *[
+                    Tr(
+                        Td(b.note),
+                        Td(f"{b.date_from} {b.date_to}"),
+                        Td(b.user),
+                        Td(
+                            Button(
+                                "Delete",
+                                hx_delete=f"/bookings/{b.id}",
+                                hx_confirm="Are you sure you want to delete this booking?",
+                                hx_swap="delete",
+                                hx_target="closest tr",
+                            )
+                        ),
+                        href=f"/bookings/edit/{b.id}",
+                    )
+                    for b in bookings()
+                ],
+                cls="striped",
+            ),
+            cls="overflow-auto",
         ),
     )
