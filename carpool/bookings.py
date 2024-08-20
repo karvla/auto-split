@@ -119,12 +119,13 @@ def bookings_table():
         A("New booking", href="/bookings/add"),
         Div(
             Table(
-                Tr(Th("When"), Th("Note"), Th("User"), Th()),
+                Tr(Th("When"), Th("Note"), Th("User"), Th(), Th()),
                 *[
                     Tr(
                         Td(f"{b.date_from} {b.date_to}"),
                         Td(b.note),
                         Td(b.user),
+                        Td(A("Edit", href=f"/bookings/edit/{b.id}")),
                         Td(
                             Button(
                                 "Delete",
@@ -134,7 +135,6 @@ def bookings_table():
                                 hx_target="closest tr",
                             )
                         ),
-                        href=f"/bookings/edit/{b.id}",
                     )
                     for b in bookings()
                 ],
