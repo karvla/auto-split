@@ -94,13 +94,13 @@ def validate_expense(expense: Expense) -> (bool, str | None):
 
 
 def expense_form(expense: Expense, post_target, title):
-    currencies = os.getenv("CURRENCIES").split(",")
+    currency = os.getenv("CURRENCY")
     if expense.date is None:
         expense.date = datetime.now()
     if expense.cost is None:
         expense.cost = 0
     if expense.currency is None:
-        expense.currency = currencies[0]
+        expense.currency = currency
 
     return (
         Page(
@@ -115,7 +115,7 @@ def expense_form(expense: Expense, post_target, title):
                     Label("Amount", _for="cost"),
                     Div(
                         Input(type="number", name="cost", value=expense.cost),
-                        Select(*[Option(c) for c in currencies], name="currency"),
+                        Input(name="currency", value=currency, disabled=True),
                         style="display: flex",
                     ),
                 ),
