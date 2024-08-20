@@ -1,4 +1,5 @@
 from app import rt, app, bookings, Booking, users, Page
+from datetime import datetime
 from fasthtml.common import (
     Response,
     Titled,
@@ -136,7 +137,8 @@ def bookings_table():
                             )
                         ),
                     )
-                    for b in bookings()
+                    for b in bookings(order_by="date_from")
+                    if datetime.fromisoformat(b.date_to) > datetime.now()
                 ],
                 cls="striped",
             ),
