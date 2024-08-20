@@ -24,8 +24,12 @@ def get():
 
 
 @rt("/bookings/add")
-def get(error_msg=""):
-    return booking_form(Booking(), "Add booking", "/bookings/add")
+def get():
+    return booking_form(
+        Booking(id=None, date_from=None, date_to=None, user=None, note=None),
+        "Add booking",
+        "/bookings/add",
+    )
 
 
 @rt("/bookings/edit/{id}")
@@ -83,7 +87,7 @@ def validate_booking(booking: Booking) -> (bool, str | None):
 
 
 def booking_form(booking: Booking, title, post_target):
-    return Titled(
+    return Page(
         title,
         Form(
             Group(
@@ -115,11 +119,11 @@ def bookings_table():
         A("New booking", href="/bookings/add"),
         Div(
             Table(
-                Tr(Th("Note"), Th("When"), Th("User"), Th()),
+                Tr(Th("When"), Th("Note"), Th("User"), Th()),
                 *[
                     Tr(
-                        Td(b.note),
                         Td(f"{b.date_from} {b.date_to}"),
+                        Td(b.note),
                         Td(b.user),
                         Td(
                             Button(

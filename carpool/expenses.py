@@ -52,7 +52,11 @@ def get():
 
 @app.get("/expenses/add")
 def get(error_msg=""):
-    return expense_form(Expense(), "/expenses/add", "Add expense")
+    return expense_form(
+        Expense(id=None, note=None, date=datetime.now().date(), user=None, cost=0),
+        "/expenses/add",
+        "Add expense",
+    )
 
 
 @rt("/expenses/edit/{id}")
@@ -90,7 +94,6 @@ def validate_expense(expense: Expense) -> (bool, str | None):
 
 
 def expense_form(expense: Expense, post_target, title):
-    print(expense)
     currencies = os.getenv("CURRENCIES").split(",")
     if expense.date is None:
         expense.date = datetime.now()
@@ -100,7 +103,7 @@ def expense_form(expense: Expense, post_target, title):
         expense.currency = currencies[0]
 
     return (
-        Titled(
+        Page(
             title,
             Form(
                 Input(type="text", name="note", placeholder="note", value=expense.note),
