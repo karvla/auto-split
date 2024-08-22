@@ -51,11 +51,14 @@ def add_new_booking(booking: Booking):
     booking.id = None
     if not is_valid:
         return msg
+
+    expense_note = '\n'.join([p for p in get_cost_description(booking.distance) if type(p) == str])
     expense_id = expenses.insert(
         Expense(
             id=None,
             date=booking.date_from,
-            note=f"{booking.note} \n{get_cost_description(booking.distance)}",
+            title=f"Ride cost: {booking.note}",
+            note=expense_note,
             user=booking.user,
             cost=get_ride_cost(booking.distance),
             currency=os.getenv("CURRENCY"),

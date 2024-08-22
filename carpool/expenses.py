@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 from fasthtml.common import (
     Response,
+    Textarea,
     Div,
     Form,
     A,
@@ -27,7 +28,7 @@ def get():
             Tr(Th("Note"), Th("Date"), Th("User"), Th("Amount"), Th(), Th()),
             *[
                 Tr(
-                    Td(e.note),
+                    Td(e.title),
                     Td(e.date),
                     Td(e.user),
                     Td(f"{e.cost} {e.currency}"),
@@ -52,7 +53,7 @@ def get():
 @app.get("/expenses/add")
 def get(error_msg=""):
     return expense_form(
-        Expense(id=None, note=None, date=datetime.now().date(), user=None, cost=0),
+        Expense(id=None, title=None, note=None, date=datetime.now().date(), user=None, cost=0),
         "/expenses/add",
         "Add expense",
     )
@@ -105,7 +106,8 @@ def expense_form(expense: Expense, post_target, title):
         Page(
             title,
             Form(
-                Input(type="text", name="note", placeholder="note", value=expense.note),
+                Input(type="text", name="title", placeholder="title", value=expense.title),
+                Textarea(expense.note, type="text", name="note", placeholder="note"),
                 Div(
                     Label("Date", _for="date"),
                     Input(type="date", name="date", value=expense.date),

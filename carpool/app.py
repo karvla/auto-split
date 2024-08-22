@@ -58,7 +58,7 @@ User = users.dataclass()
 expenses = db.t.expenses
 if expenses not in db.t:
     expenses.create(
-        id=int, note=str, date=datetime, currency=str, cost=int, user=str, pk="id"
+        id=int, title=str, note=str, date=datetime, currency=str, cost=int, user=str, pk="id"
     )
 Expense = expenses.dataclass()
 
