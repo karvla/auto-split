@@ -5,7 +5,6 @@ from fasthtml.common import (
     Response,
     Div,
     Form,
-    Titled,
     A,
     Table,
     Tr,

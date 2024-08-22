@@ -1,9 +1,14 @@
-from app import rt, app, bookings, Booking, users, Page
+from app import rt, app, bookings, Booking, users, Page, Expense, expenses
+import os
+import costs
 from datetime import datetime
 from fasthtml.common import (
     Response,
     Titled,
+    Small,
     Div,
+    Br,
+    P,
     Form,
     Group,
     A,
@@ -27,7 +32,9 @@ def get():
 @rt("/bookings/add")
 def get():
     return booking_form(
-        Booking(id=None, date_from=None, date_to=None, user=None, note=None),
+        Booking(
+            id=None, date_from=None, date_to=None, user=None, note=None, distance=0
+        ),
         "Add booking",
         "/bookings/add",
     )
@@ -44,6 +51,17 @@ def add_new_booking(booking: Booking):
     booking.id = None
     if not is_valid:
         return msg
+    expense_id = expenses.insert(
+        Expense(
+            id=None,
+            date=booking.date_from,
+            note=f"{booking.note} \n{get_cost_description(booking.distance)}",
+            user=booking.user,
+            cost=get_ride_cost(booking.distance),
+            currency=os.getenv("CURRENCY"),
+        )
+    )
+    booking.expense_id = expense_id
     bookings.insert(booking)
     return Response(headers={"HX-Location": "/bookings"})
 
@@ -105,12 +123,56 @@ def booking_form(booking: Booking, title, post_target):
             Select(*[Option(u.name) for u in users()], name="user"),
             Input(type="text", name="id", value=booking.id, style="display:none"),
             Input(type="text", name="note", placeholder="note", value=booking.note),
+            Div(
+                Label("Distance driven ", _for="distance"),
+                Div(
+                    Input(
+                        type="number",
+                        name="distance",
+                        value=booking.distance,
+                        hx_post="/bookings/cost",
+                        hx_trigger="input changed",
+                        hx_swap="inner_html",
+                        hx_target="#cost",
+                    ),
+                    Input(value=os.getenv("DISTANCE_UNIT"), readonly=True),
+                    style="display: flex",
+                ),
+            ),
             Div(id="indicator"),
+            Small(get_cost_description(booking.distance), id="cost"),
             Button("Save"),
             hx_post=post_target,
             hx_target="#indicator",
             style="flex-direction: column",
         ),
+    )
+
+
+def get_ride_cost(distance: int):
+    cost_per_volume = float(costs.get_gas_price())
+    volume_per_distance = float(os.getenv("FUEL_EFFICIENCY"))
+    fixed_cost_per_distance = float(os.getenv("COST_PER_DISTANCE"))
+    return distance * (cost_per_volume * volume_per_distance + fixed_cost_per_distance)
+
+
+@app.post("/bookings/cost")
+def get_cost_description(distance: int):
+    cost_per_volume = float(costs.get_gas_price())
+    volume_per_distance = float(os.getenv("FUEL_EFFICIENCY"))
+    fixed_cost_per_distance = float(os.getenv("COST_PER_DISTANCE"))
+    volume_unit = os.getenv("VOLUME_UNIT")
+    distance_unit = os.getenv("DISTANCE_UNIT")
+    currency = os.getenv("CURRENCY")
+
+    total = get_ride_cost(distance)
+    return (
+        "This ride costs distance x (gas price x fuel efficiency + fixed cost)",
+        Br(),
+        f"= {distance} {distance_unit} x ({round(cost_per_volume,2)} {currency}/{volume_unit} x {volume_per_distance} {volume_unit} / {distance_unit} + {fixed_cost_per_distance} {currency}/{distance_unit})",
+        Br(),
+        f"= {round(total,1)} {currency}",
+        Br(),
     )
 
 

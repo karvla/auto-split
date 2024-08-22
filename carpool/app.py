@@ -54,13 +54,6 @@ if users not in db.t:
         users.insert(name=user)
 User = users.dataclass()
 
-bookings = db.t.bookings
-if bookings not in db.t:
-    bookings.create(
-        id=int, note=str, date_from=datetime, date_to=datetime, user=str, pk="id"
-    )
-Booking = bookings.dataclass()
-
 
 expenses = db.t.expenses
 if expenses not in db.t:
@@ -68,3 +61,18 @@ if expenses not in db.t:
         id=int, note=str, date=datetime, currency=str, cost=int, user=str, pk="id"
     )
 Expense = expenses.dataclass()
+
+bookings = db.t.bookings
+if bookings not in db.t:
+    bookings.create(
+        id=int,
+        note=str,
+        date_from=datetime,
+        date_to=datetime,
+        user=str,
+        pk="id",
+        distance=int,
+        expense_id=int,
+    )
+    bookings.add_foreign_key("expense_id", "expenses", "id")
+Booking = bookings.dataclass()
