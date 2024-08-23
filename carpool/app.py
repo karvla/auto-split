@@ -36,12 +36,14 @@ def Page(title: str, *c):
 
 
 def before(req, sess):
+    print(req, sess)
     auth = req.scope["auth"] = sess.get("auth", None)
     if not auth:
         return RedirectResponse("/login", status_code=303)
 
 
-beforeware = Beforeware(before, skip=["/login"])
+calendar_path = f"/{os.getenv('CALENDAR_SECRET')}.ics"
+beforeware = Beforeware(before, skip=["/login", calendar_path])
 use_live_reload = os.getenv("DEBUG") is not None
 app, rt = fast_app(live=use_live_reload, before=beforeware)
 
@@ -58,7 +60,14 @@ User = users.dataclass()
 expenses = db.t.expenses
 if expenses not in db.t:
     expenses.create(
-        id=int, title=str, note=str, date=datetime, currency=str, cost=int, user=str, pk="id"
+        id=int,
+        title=str,
+        note=str,
+        date=datetime,
+        currency=str,
+        cost=int,
+        user=str,
+        pk="id",
     )
 Expense = expenses.dataclass()
 

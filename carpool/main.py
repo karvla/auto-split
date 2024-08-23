@@ -7,6 +7,7 @@ from fasthtml.common import serve, RedirectResponse
 import bookings
 import expenses
 import login
+import bookings_calendar
 
 
 @rt("/")

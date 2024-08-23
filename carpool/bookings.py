@@ -1,4 +1,14 @@
-from app import rt, app, bookings, Booking, users, Page, Expense, expenses
+from app import (
+    rt,
+    app,
+    bookings,
+    Booking,
+    users,
+    Page,
+    Expense,
+    expenses,
+    calendar_path,
+)
 import os
 import costs
 from datetime import datetime
@@ -6,9 +16,13 @@ from fasthtml.common import (
     Response,
     Titled,
     Small,
+    Footer,
     Div,
     Br,
+    Main,
     P,
+    Body,
+    Header,
     Form,
     Group,
     A,
@@ -26,7 +40,7 @@ from fasthtml.common import (
 
 @rt("/bookings")
 def get():
-    return bookings_table()
+    return bookings_page()
 
 
 @rt("/bookings/add")
@@ -52,7 +66,9 @@ def add_new_booking(booking: Booking):
     if not is_valid:
         return msg
 
-    expense_note = '\n'.join([p for p in get_cost_description(booking.distance) if type(p) == str])
+    expense_note = "\n".join(
+        [p for p in get_cost_description(booking.distance) if type(p) == str]
+    )
     expense_id = expenses.insert(
         Expense(
             id=None,
@@ -179,11 +195,15 @@ def get_cost_description(distance: int):
     )
 
 
-def bookings_table():
+def bookings_page():
     return Page(
         "Bookings",
-        A("New booking", href="/bookings/add"),
         Div(
+            A("New Booking", href="/bookings/add"),
+            Br(),
+            A("Calendar", href=calendar_path),
+        ),
+        Main(
             Table(
                 Tr(Th("When"), Th("Note"), Th("User"), Th(), Th()),
                 *[

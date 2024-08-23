@@ -53,7 +53,14 @@ def get():
 @app.get("/expenses/add")
 def get(error_msg=""):
     return expense_form(
-        Expense(id=None, title=None, note=None, date=datetime.now().date(), user=None, cost=0),
+        Expense(
+            id=None,
+            title=None,
+            note=None,
+            date=datetime.now().date(),
+            user=None,
+            cost=0,
+        ),
         "/expenses/add",
         "Add expense",
     )
@@ -106,7 +113,9 @@ def expense_form(expense: Expense, post_target, title):
         Page(
             title,
             Form(
-                Input(type="text", name="title", placeholder="title", value=expense.title),
+                Input(
+                    type="text", name="title", placeholder="title", value=expense.title
+                ),
                 Textarea(expense.note, type="text", name="note", placeholder="note"),
                 Div(
                     Label("Date", _for="date"),
