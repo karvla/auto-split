@@ -16,9 +16,16 @@ def fetch_gas_price():
     if not result.status_code == 200:
         return
 
-    soup = BeautifulSoup(result.text, "html.parser")
-    cells = [c.text for c in soup.find_all("td")]
-    gas_costs = [float(c) for n, c in enumerate(cells[1:]) if n % 5 == 0]
+    try:
+        soup = BeautifulSoup(result.text, "html.parser")
+        cells = [c.text for c in soup.find_all("td") if c is not None]
+        gas_costs_cells = [c for n, c in enumerate(cells) if n % 5 == 1]
+        print(gas_costs_cells)
+        gas_costs = [float(c) for c in gas_costs_cells if c != ""]
+    except Exception as e:
+        print("Error: could not parse gas price", e)
+        return None
+
     return sum(gas_costs) / len(gas_costs)
 
 

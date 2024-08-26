@@ -1,6 +1,10 @@
-from app import Booking, bookings, app, calendar_path
+from app import app, calendar_path
+from bookings import Booking
+from db.init_db import db
 from fasthtml.common import Response
 from datetime import datetime
+
+bookings = db.t.bookings
 
 
 @app.get(calendar_path)

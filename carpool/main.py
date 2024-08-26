@@ -1,17 +1,20 @@
 from dotenv import load_dotenv
+from db.init_db import run_db_migrations
 
 load_dotenv()
-
-from app import app, rt
+run_db_migrations()
+from app import app
 from fasthtml.common import serve, RedirectResponse
+import importlib
 import bookings
 import expenses
-import login
-import bookings_calendar
+
+importlib.reload(bookings)
+importlib.reload(expenses)
 
 
-@rt("/")
-def get():
+@app.get("/")
+def get_home():
     return RedirectResponse("/bookings")
 
 

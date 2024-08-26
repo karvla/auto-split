@@ -1,4 +1,5 @@
-from app import rt, app, expenses, Expense, users, Page
+from app import app, Page
+from db.init_db import db
 from datetime import datetime
 import os
 from fasthtml.common import (
@@ -18,9 +19,13 @@ from fasthtml.common import (
     Option,
 )
 
+expenses = db.t.expenses
+Expense = expenses.dataclass()
+users = db.t.users
 
-@rt("/expenses")
-def get():
+
+@app.get("/expenses")
+def get_expenses_page():
     return Page(
         "Expenses",
         A("Add expense", href="/expenses/add"),
@@ -51,7 +56,7 @@ def get():
 
 
 @app.get("/expenses/add")
-def get(error_msg=""):
+def add_expenses_page(error_msg=""):
     return expense_form(
         Expense(
             id=None,
@@ -66,8 +71,8 @@ def get(error_msg=""):
     )
 
 
-@rt("/expenses/edit/{id}")
-def get(id: int):
+@app.get("/expenses/edit/{id}")
+def edit_expense_form(id: int):
     return expense_form(expenses[id], "/expenses/edit", "Edit expense")
 
 
