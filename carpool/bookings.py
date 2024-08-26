@@ -105,19 +105,20 @@ def delete_booking(id: int):
 
 @app.post("/bookings/validate")
 def validate_booking(booking: Booking) -> (bool, str | None):
-    if not booking.date_from or not booking.date_to:
+    date_from, date_to = booking_time(booking)
+    if not date_from or not date_to:
         return False, "Pls add booking duration"
-    if booking.date_from > booking.date_to:
+    if date_from > date_to:
         return False, "Start time should be before end time"
     other_bookings = (
         bookings() if booking.id is None else bookings(where=f"id != {booking.id}")
     )
-    for b in other_bookings:
+    for f, t in map(bookings_time, other_bookings):
         if (
-            b.date_from < booking.date_from < b.date_to
-            or b.date_from < booking.date_to < b.date_to
-            or booking.date_from < b.date_to < booking.date_to
-            or booking.date_from < b.date_from < booking.date_to
+            f < date_from < t
+            or f < booking.date_to < t
+            or date_from < t < date_to
+            or date_from < f < date_to
         ):
             return False, "There's already a booking for this time span"
     return True, None
