@@ -33,7 +33,7 @@ users = db.t.users
 def get_expenses_page():
     return Page(
         "Expenses",
-        A("Add expense", href="/expenses/add"),
+        A("Add expense", href="/expenses/add", role="button"),
         Table(
             Tr(Th("Note"), Th("Date"), Th("User"), Th("Amount"), Th(), Th()),
             *[
