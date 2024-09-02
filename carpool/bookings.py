@@ -206,12 +206,19 @@ def get_cost_description(distance: int | None):
 
 @app.get("/bookings")
 def bookings_page():
+
+    def calendar_url():
+        return f"{os.getenv('BASE_URL')}{calendar_path}"
+
     return Page(
         "Bookings",
         Div(
-            A("New Booking", href="/bookings/add"),
-            Br(),
-            A("Calendar", href=calendar_path),
+            A("New Booking", role="button", href="/bookings/add"),
+            Button(
+                "Copy calendar link",
+                _=f"on click call navigator.clipboard.writeText('{calendar_url()}') then set my.innerText to 'Copied!'",
+                cls="secondary outline",
+            ),
         ),
         Main(
             Table(

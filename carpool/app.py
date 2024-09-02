@@ -8,6 +8,7 @@ from fasthtml.common import (
     Ul,
     Title,
     Li,
+    Script,
     A,
 )
 import os
@@ -42,4 +43,8 @@ def before(req, sess):
 calendar_path = f"/{os.getenv('CALENDAR_SECRET')}.ics"
 beforeware = Beforeware(before, skip=["/login", calendar_path])
 use_live_reload = os.getenv("DEBUG") is not None
-app, _ = fast_app(live=use_live_reload, before=beforeware)
+app, _ = fast_app(
+    live=use_live_reload,
+    before=beforeware,
+    hdrs=(Script(src="https://unpkg.com/hyperscript.org@0.9.12"),),
+)
