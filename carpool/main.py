@@ -9,6 +9,7 @@ import importlib
 import bookings
 import expenses
 import login
+import bookings_calendar
 
 importlib.reload(bookings)
 importlib.reload(expenses)

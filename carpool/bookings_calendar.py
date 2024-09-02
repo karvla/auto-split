@@ -1,6 +1,7 @@
 from app import app, calendar_path
 from bookings import Booking
 from db.init_db import db
+import os
 from fasthtml.common import Response
 from datetime import datetime
 
@@ -32,11 +33,11 @@ def to_ics_content(bookings: [Booking]) -> str:
                     [
                         "BEGIN:VEVENT",
                         "UID:uid1@example.com",
-                        f"SUMMARY:{b.user} {b.note}",
+                        f"SUMMARY:🚗 {b.user} - {b.note} ",
                         f"DTSTART:{format_datetime(b.date_from)}",
                         f"DTEND:{format_datetime(b.date_to)}",
-                        "LOCATION:",
-                        f"DESCRIPTION:{b.note}",
+                        f"LOCATION:{booking_edit_link(b)}",
+                        f"DESCRIPTION:{booking_summary(b)}",
                         "END:VEVENT",
                     ]
                 )
@@ -45,3 +46,16 @@ def to_ics_content(bookings: [Booking]) -> str:
             "END:VCALENDAR",
         ]
     )
+
+
+def booking_summary(b: Booking):
+    return "\n".join(
+        [
+            booking_edit_link(b),
+            b.note,
+        ]
+    )
+
+
+def booking_edit_link(b: Booking):
+    return f"{os.getenv('BASE_URL')}/bookings/edit/{b.id}"
