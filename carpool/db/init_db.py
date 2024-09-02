@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from fasthtml.common import database
+from expense_type import ExpenseType
 
 db = database("data/carpool.db")
 
@@ -41,8 +42,14 @@ def init_migration():
         bookings.add_foreign_key("expense_id", "expenses", "id")
 
 
+def add_expense_type():
+    expenses = db.t.expenses
+    expenses.add_column("type", col_type=str, not_null_default=ExpenseType.individual)
+
+
 migrations = [
     init_migration,
+    add_expense_type,
 ]
 
 

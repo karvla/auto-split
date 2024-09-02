@@ -5,6 +5,7 @@ from app import (
 )
 import os
 from expenses import Expense, expenses
+from db.expense_type import ExpenseType
 import costs
 from datetime import datetime
 from fasthtml.common import (
@@ -69,6 +70,7 @@ def add_new_booking(booking: Booking):
             user=booking.user,
             cost=get_ride_cost(booking.distance),
             currency=os.getenv("CURRENCY"),
+            type=ExpenseType.individual,
         )
     )
     booking.expense_id = expense.id

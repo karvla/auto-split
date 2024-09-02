@@ -1,8 +1,11 @@
 from app import app, Page
 from db.init_db import db
+from db.expense_type import ExpenseType
 from datetime import datetime
 import os
 from fasthtml.common import (
+    Legend,
+    Fieldset,
     Response,
     Textarea,
     Div,
@@ -14,6 +17,8 @@ from fasthtml.common import (
     Th,
     Button,
     Input,
+    Small,
+    Span,
     Label,
     Select,
     Option,
@@ -64,6 +69,7 @@ def add_expenses_page(error_msg=""):
             note=None,
             date=datetime.now().date(),
             user=None,
+            type=ExpenseType.individual,
             cost=0,
         ),
         "/expenses/add",
@@ -107,13 +113,8 @@ def validate_expense(expense: Expense) -> (bool, str | None):
 
 def expense_form(expense: Expense, post_target, title):
     currency = os.getenv("CURRENCY")
-    if expense.date is None:
-        expense.date = datetime.now()
-    if expense.cost is None:
-        expense.cost = 0
-    if expense.currency is None:
-        expense.currency = currency
 
+    print(expense)
     return (
         Page(
             title,
@@ -135,11 +136,35 @@ def expense_form(expense: Expense, post_target, title):
                     ),
                 ),
                 Div(
-                    Label("Done by", _for="by"),
+                    Label("Payed by", _for="by"),
                     Select(
                         *[Option(u.name) for u in users()],
                         name="user",
                         value=expense.currency,
+                    ),
+                ),
+                Legend("Expense type:"),
+                Fieldset(
+                    Label(
+                        Input(
+                            type="radio",
+                            checked=expense.type == ExpenseType.individual,
+                            id="type-individual",
+                            name="type",
+                            value=ExpenseType.individual,
+                        ),
+                        Span("Individual", Small("- eg. Gas")),
+                        _for="type-individual",
+                    ),
+                    Label(
+                        Input(
+                            type="radio",
+                            checked=expense.type == ExpenseType.shared,
+                            id="type-shared",
+                            name="type",
+                            value=ExpenseType.shared,
+                        ),
+                        Span("Shared", Small("- eg. Insurance")),
                     ),
                 ),
                 Input(type="text", name="id", value=expense.id, style="display:none"),
