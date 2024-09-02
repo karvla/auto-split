@@ -8,6 +8,7 @@ from fasthtml.common import serve, RedirectResponse
 import importlib
 import bookings
 import expenses
+import login
 
 importlib.reload(bookings)
 importlib.reload(expenses)

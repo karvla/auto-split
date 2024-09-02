@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from app import app, rt
+from app import app
 from fasthtml.common import Titled, Form, Input, Button, RedirectResponse
 import os
 
@@ -10,8 +10,8 @@ class Credentials:
     password: str
 
 
-@rt("/login")
-def get():
+@app.get("/login")
+def login_page():
     return Titled(
         "Login",
         Form(
@@ -41,7 +41,7 @@ def login(credentials: Credentials, sess):
     return RedirectResponse("/", status_code=303)
 
 
-@rt("/logout")
+@app.get("/logout")
 def get(sess):
     sess["auth"] = None
     return RedirectResponse("/", status_code=303)
