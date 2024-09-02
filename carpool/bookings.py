@@ -107,7 +107,7 @@ def delete_booking(id: int):
 
 @app.post("/bookings/validate")
 def validate_booking(booking: Booking) -> (bool, str | None):
-    date_from, date_to = booking_time(booking)
+    date_from, date_to = booking_time_range(booking)
     if not date_from or not date_to:
         return False, "Pls add booking duration"
     if date_from > date_to:
@@ -115,10 +115,10 @@ def validate_booking(booking: Booking) -> (bool, str | None):
     other_bookings = (
         bookings() if booking.id is None else bookings(where=f"id != {booking.id}")
     )
-    for f, t in map(bookings_time, other_bookings):
+    for f, t in map(booking_time_range, other_bookings):
         if (
             f < date_from < t
-            or f < booking.date_to < t
+            or f < date_to < t
             or date_from < t < date_to
             or date_from < f < date_to
         ):
@@ -248,14 +248,14 @@ def bookings_page():
     )
 
 
-def booking_time(booking: Booking) -> (datetime, datetime):
+def booking_time_range(booking: Booking) -> (datetime, datetime):
     return datetime.fromisoformat(booking.date_from), datetime.fromisoformat(
         booking.date_to
     )
 
 
 def bookings_time(booking: Booking) -> str:
-    date_from, date_to = booking_time(booking)
+    date_from, date_to = booking_time_range(booking)
     if date_from.date() == date_to.date():
         return date_from.date()
     else:
