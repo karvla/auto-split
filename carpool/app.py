@@ -18,6 +18,7 @@ def Page(title: str, *c):
     pages = [
         ("Bookings", "/bookings"),
         ("Expenses", "/expenses"),
+        ("Debts", "/debts"),
     ]
     title = (f"Car pool - {title}",)
     nav_links = [

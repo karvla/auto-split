@@ -10,6 +10,7 @@ import bookings
 import expenses
 import login
 import bookings_calendar
+import debts
 
 importlib.reload(bookings)
 importlib.reload(expenses)
