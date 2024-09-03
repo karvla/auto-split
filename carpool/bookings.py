@@ -40,6 +40,7 @@ def add_booking_form():
     return booking_form(
         Booking(
             id=None,
+            expense_id=None,
             date_from=None,
             date_to=None,
             user=None,
@@ -51,28 +52,31 @@ def add_booking_form():
     )
 
 
+def booking_expense(booking: Booking) -> Expense:
+    expense_note = "\n".join(
+        [p for p in get_cost_description(booking.distance) if type(p) is str]
+    )
+    return Expense(
+        id=None,
+        date=booking.date_from,
+        title=f"Ride cost: {booking.note}",
+        note=expense_note,
+        user=booking.user,
+        cost=get_ride_cost(booking.distance),
+        currency=os.getenv("CURRENCY"),
+        type=ExpenseType.individual,
+    )
+
+
 @app.post("/bookings/add")
 def add_new_booking(booking: Booking):
+    print(booking)
     booking.id = None
     is_valid, msg = validate_booking(booking)
     if not is_valid:
         return msg
 
-    expense_note = "\n".join(
-        [p for p in get_cost_description(booking.distance) if type(p) is str]
-    )
-    expense = expenses.insert(
-        Expense(
-            id=None,
-            date=booking.date_from,
-            title=f"Ride cost: {booking.note}",
-            note=expense_note,
-            user=booking.user,
-            cost=get_ride_cost(booking.distance),
-            currency=os.getenv("CURRENCY"),
-            type=ExpenseType.individual,
-        )
-    )
+    expense = expenses.insert(booking_expense(booking))
     booking.expense_id = expense.id
     bookings.insert(booking)
     return Response(headers={"HX-Location": "/bookings"})
@@ -89,11 +93,14 @@ def edit_booking(booking: Booking):
     if not is_valid:
         return booking_form(booking, "Edit booking", "/bookings/edit")
     bookings.update(booking)
+    updated_expense = booking_expense(booking)
+    updated_expense.id = booking.expense_id
+    expenses.upsert(updated_expense)
     return Response(headers={"HX-Location": "/bookings"})
 
 
 @app.post("/bookings/validate")
-def edit_booking(booking: Booking):
+def validate(booking: Booking):
     is_valid, msg = validate_booking(booking)
     if not is_valid:
         return msg
@@ -101,6 +108,8 @@ def edit_booking(booking: Booking):
 
 @app.delete("/bookings/{id}")
 def delete_booking(id: int):
+    booking = bookings[id]
+    expenses.delete(booking.expense_id)
     bookings.delete(id)
     return Response(headers={"HX-Location": "/bookings"})
 
@@ -149,6 +158,12 @@ def booking_form(booking: Booking, title, post_target):
                 type="text",
                 name="id",
                 value=booking.id,
+                style="display:none",
+            ),
+            Input(
+                type="text",
+                name="expense_id",
+                value=booking.expense_id,
                 style="display:none",
             ),
             Input(type="text", name="note", placeholder="note", value=booking.note),
