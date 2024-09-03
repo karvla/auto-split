@@ -141,7 +141,10 @@ def booking_form(booking: Booking, title, post_target):
                 ),
                 style="flex-direction: row",
             ),
-            Select(*[Option(u.name) for u in users()], name="user"),
+            Select(
+                *[Option(u.name, selected=u.name == booking.user) for u in users()],
+                name="user",
+            ),
             Input(
                 type="text",
                 name="id",
