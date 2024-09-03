@@ -3,7 +3,8 @@ from bookings import Booking
 from db.init_db import db
 import os
 from fasthtml.common import Response
-from datetime import datetime
+from datetime import datetime, timedelta
+from bookings import booking_time_range
 
 bookings = db.t.bookings
 
@@ -18,8 +19,6 @@ def ics_content():
 
 def to_ics_content(bookings: [Booking]) -> str:
     def format_datetime(dt):
-        if type(dt) is str:
-            dt = datetime.fromisoformat(dt)
         return dt.strftime("%Y%m%dT%H%M%S")
 
     return "\n".join(
@@ -34,8 +33,8 @@ def to_ics_content(bookings: [Booking]) -> str:
                         "BEGIN:VEVENT",
                         "UID:uid1@example.com",
                         f"SUMMARY:🚗 {b.user} - {b.note} ",
-                        f"DTSTART:{format_datetime(b.date_from)}",
-                        f"DTEND:{format_datetime(b.date_to)}",
+                        f"DTSTART:{format_datetime(booking_time_range(b)[0])}",
+                        f"DTEND:{format_datetime(booking_time_range(b)[1] + timedelta(1))}",
                         f"LOCATION:{booking_edit_link(b)}",
                         f"DESCRIPTION:{booking_summary(b)}",
                         "END:VEVENT",
