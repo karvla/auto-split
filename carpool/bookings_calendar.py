@@ -31,7 +31,7 @@ def to_ics_content(bookings: [Booking]) -> str:
                 "\n".join(
                     [
                         "BEGIN:VEVENT",
-                        "UID:uid1@example.com",
+                        f"UID:{b.id}@carpoolapp",
                         f"SUMMARY:🚗 {b.user} - {b.note} ",
                         f"DTSTART:{format_datetime(booking_time_range(b)[0])}",
                         f"DTEND:{format_datetime(booking_time_range(b)[1] + timedelta(1))}",
