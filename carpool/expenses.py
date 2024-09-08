@@ -138,7 +138,10 @@ def expense_form(expense: Expense, post_target, title):
                 Div(
                     Label("Payed by", _for="by"),
                     Select(
-                        *[Option(u.name) for u in users()],
+                        *[
+                            Option(u.name, selected=u.name == expense.user)
+                            for u in users()
+                        ],
                         name="user",
                         value=expense.currency,
                     ),
