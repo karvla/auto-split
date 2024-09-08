@@ -50,6 +50,7 @@ def total_debt(debtor: User, creditor):
 
 
 def debt(debtor: User, creditor: User):
+    current_date = datetime.now().date().isoformat()
     from_shared_expenses = next(
         db.query(
             f"""
@@ -57,8 +58,9 @@ def debt(debtor: User, creditor: User):
         from {expenses}
         where user == ?
         and type == '{ExpenseType.shared}'
+        and date <= ?
         """,
-            [creditor.name],
+            [creditor.name, current_date],
         )
     )
 
@@ -69,8 +71,9 @@ def debt(debtor: User, creditor: User):
         from {expenses}
         where user == ?
         and type == '{ExpenseType.individual}'
+        and date <= ?
         """,
-            [debtor.name],
+            [debtor.name, current_date],
         )
     )
     from_shared_expenses = next(iter(from_shared_expenses.values()))
