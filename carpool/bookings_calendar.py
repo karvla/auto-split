@@ -5,6 +5,7 @@ import os
 from fasthtml.common import Response
 from datetime import datetime, timedelta
 from bookings import booking_time_range
+from ics import Calendar, Event
 
 bookings = db.t.bookings
 
@@ -18,41 +19,21 @@ def ics_content():
 
 
 def to_ics_content(bookings: [Booking]) -> str:
-    def format_datetime(dt):
-        return dt.strftime("%Y%m%dT%H%M%S")
-
     return "\n".join(
-        [
-            "BEGIN:VCALENDAR",
-            "VERSION:2.0",
-            "PRODID:-//Car pool//bookings//EN",
-            "ORGANIZER;CN=John Doe:MAILTO:john.doe@example.com",
-            *[
-                "\n".join(
-                    [
-                        "BEGIN:VEVENT",
-                        f"UID:{b.id}@carpoolapp",
-                        f"SUMMARY:🚗 {b.user} - {b.note} ",
-                        f"DTSTART:{format_datetime(booking_time_range(b)[0])}",
-                        f"DTEND:{format_datetime(booking_time_range(b)[1] + timedelta(1))}",
-                        f"LOCATION:{booking_edit_link(b)}",
-                        f"DESCRIPTION:{booking_summary(b)}",
-                        "END:VEVENT",
-                    ]
+        Calendar(
+            events=[
+                Event(
+                    name=f"🚗 {b.user}",
+                    description=b.note,
+                    begin=b.date_from,
+                    end=b.date_to,
+                    uid=f"{b.id}@carpoolapp",
+                    location=booking_edit_link(b),
+                    url=booking_edit_link(b),
                 )
                 for b in bookings
-            ],
-            "END:VCALENDAR",
-        ]
-    )
-
-
-def booking_summary(b: Booking):
-    return "\n".join(
-        [
-            booking_edit_link(b),
-            b.note,
-        ]
+            ]
+        )
     )
 
 
