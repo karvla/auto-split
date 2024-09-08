@@ -109,7 +109,7 @@ def validate(booking: Booking):
 @app.delete("/bookings/{id}")
 def delete_booking(id: int):
     booking = bookings[id]
-    expenses.delete(booking.expense_id)
+    expenses.delete_where(where="id == ?", where_args=[booking.expense_id])
     bookings.delete(id)
     return Response(headers={"HX-Location": "/bookings"})
 
