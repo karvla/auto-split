@@ -41,11 +41,11 @@ def get_expenses_page():
                     Td(e.title),
                     Td(e.date),
                     Td(e.user),
-                    Td(f"{e.cost} {e.currency}"),
-                    Td(A("Edit", href=f"/expenses/edit/{e.id}")),
+                    Td(f"{round(e.cost)} {e.currency}"),
+                    Td(A("edit", href=f"/expenses/edit/{e.id}")),
                     Td(
-                        Button(
-                            "Delete",
+                        A(
+                            "delete",
                             hx_delete=f"/expenses/{e.id}",
                             hx_confirm="Are you sure you want to delete this expense?",
                             hx_swap="delete",

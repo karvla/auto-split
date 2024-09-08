@@ -6,27 +6,8 @@ from app import (
 import os
 from expenses import Expense, expenses
 from db.expense_type import ExpenseType
-import costs
 from datetime import datetime
-from fasthtml.common import (
-    Response,
-    Small,
-    Div,
-    Br,
-    Main,
-    Form,
-    Group,
-    A,
-    Table,
-    Tr,
-    Td,
-    Th,
-    Button,
-    Input,
-    Label,
-    Select,
-    Option,
-)
+from fasthtml.common import Div
 from db.init_db import db
 from itertools import permutations
 
@@ -42,11 +23,11 @@ def debts_page():
         Div(f"{d.name} owes {c.name} {total_debt(d, c)}")
         for d, c in permutations(users(), 2)
     ]
-    return Page("debts", *a)
+    return Page("Debts", *a)
 
 
 def total_debt(debtor: User, creditor):
-    return max(0, debt(debtor, creditor) - debt(creditor, debtor))
+    return round(max(0, debt(debtor, creditor) - debt(creditor, debtor)))
 
 
 def debt(debtor: User, creditor: User):

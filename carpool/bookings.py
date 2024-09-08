@@ -246,10 +246,10 @@ def bookings_page():
                         Td(bookings_time(b)),
                         Td(b.note),
                         Td(b.user),
-                        Td(A("Edit", href=f"/bookings/edit/{b.id}")),
+                        Td(A("edit", href=f"/bookings/edit/{b.id}")),
                         Td(
-                            Button(
-                                "Delete",
+                            A(
+                                "delete",
                                 hx_delete=f"/bookings/{b.id}",
                                 hx_confirm="Are you sure you want to delete this booking?",
                                 hx_swap="delete",
@@ -275,6 +275,6 @@ def booking_time_range(booking: Booking) -> (datetime, datetime):
 def bookings_time(booking: Booking) -> str:
     date_from, date_to = booking_time_range(booking)
     if date_from.date() == date_to.date():
-        return date_from.date()
+        return Small(date_from.date())
     else:
-        return date_from.date(), Br(), date_to.date()
+        return Small(date_from.date()), Small(Br(), date_to.date())

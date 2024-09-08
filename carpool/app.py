@@ -4,7 +4,7 @@ from fasthtml.common import (
     RedirectResponse,
     Main,
     Nav,
-    H1,
+    H3,
     Ul,
     Title,
     Li,
@@ -20,7 +20,7 @@ def Page(title: str, *c):
         ("Expenses", "/expenses"),
         ("Debts", "/debts"),
     ]
-    title = (f"Car pool - {title}",)
+    title = (f"🚗 {title}",)
     nav_links = [
         Li(A(t, href=l, cls="contrast" + " outline" if t == title else ""))
         for t, l in pages
@@ -28,7 +28,7 @@ def Page(title: str, *c):
     return (
         Title(title),
         Main(
-            Nav(Ul(Li(H1(title))), Ul(*nav_links)),
+            Nav(Ul(Li(H3(title))), Ul(*nav_links)),
             *c,
             cls="container",
         ),
