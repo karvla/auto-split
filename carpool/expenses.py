@@ -156,7 +156,7 @@ def expense_form(expense: Expense, post_target, title):
                             name="type",
                             value=ExpenseType.individual,
                         ),
-                        Span("Individual", Small("- eg. Gas")),
+                        Span("Individual", Small("- eg. Consuming gas")),
                         _for="type-individual",
                     ),
                     Label(
@@ -167,7 +167,7 @@ def expense_form(expense: Expense, post_target, title):
                             name="type",
                             value=ExpenseType.shared,
                         ),
-                        Span("Shared", Small("- eg. Insurance")),
+                        Span("Shared", Small("- eg. Insurance or buying gas")),
                     ),
                 ),
                 Input(type="text", name="id", value=expense.id, style="display:none"),
