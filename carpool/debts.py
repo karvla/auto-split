@@ -25,6 +25,7 @@ from fasthtml.common import (
 from db.init_db import db
 from itertools import permutations
 from dataclasses import dataclass
+from operator import itemgetter
 
 expenses = db.t.expenses
 Expense = expenses.dataclass()
@@ -37,11 +38,11 @@ Transaction = transactions.dataclass()
 
 @app.get("/debts")
 def debts_page():
-    a, b, *_ = users()
+    (debtor, creditor, debt), *_ = sorted(all_debts(), key=itemgetter(2), reverse=True)
     transaction = Transaction(
-        from_user=b.name,
-        to_user=a.name,
-        amount=total_debt(a, b),
+        from_user=debtor.name,
+        to_user=creditor.name,
+        amount=debt,
     )
     return Page("Debts", debts_form(transaction, False), transaction_list())
 
@@ -65,7 +66,7 @@ def transaction_card(t: Transaction):
             A(
                 "delete",
                 hx_delete=f"/debts/transactions/{t.id}",
-                hx_target="closest article",
+                hx_target="#transactions-list",
                 hx_swap="outerHTML",
             ),
         ),
@@ -83,6 +84,7 @@ def add_transaction(transaction: Transaction):
 @app.delete("/debts/transactions/{id}")
 def delete_transaction(id: int):
     transactions.delete(id)
+    return transaction_list()
 
 
 @app.post("/debts/validate/{input}")
@@ -98,7 +100,7 @@ def validate_form(transaction: Transaction, input: str):
 
     if input != "amount":
         transaction.amount = total_debt(
-            User(name=transaction.to_user), User(name=transaction.from_user)
+            User(name=transaction.from_user), User(name=transaction.to_user)
         )
     valid = transaction.amount > 0
     return debts_form(transaction, valid)
@@ -173,13 +175,16 @@ def debts_form(transaction: Transaction, is_valid):
     )
 
 
+def all_debts() -> [(User, User, float)]:
+    return [(a, b, total_debt(a, b)) for a, b in permutations(users(), 2)]
+
+
 def current_debt():
     currency = os.getenv("CURRENCY")
-    total_debts = [(a, b, total_debt(a, b)) for a, b in permutations(users(), 2)]
     return Div(
         *[
             Small(f"{a.name} owes {b.name} {round(d)} {currency}")
-            for a, b, d in total_debts
+            for a, b, d in all_debts()
             if d > 0
         ]
     )
@@ -216,10 +221,26 @@ def debt(debtor: User, creditor: User):
             [debtor.name, current_date],
         )
     )
+
+    from_transactions = next(
+        db.query(
+            f"""
+        select sum(amount)
+        from {transactions}
+        where from_user == ?
+        and to_user == ?
+        """,
+            [debtor.name, creditor.name],
+        )
+    )
+
     from_shared_expenses = next(iter(from_shared_expenses.values()))
     from_individual_expenses = next(iter(from_individual_expenses.values()))
+    from_transactions = next(iter(from_transactions.values()))
     if from_shared_expenses is None:
         from_shared_expenses = 0
     if from_individual_expenses is None:
         from_individual_expenses = 0
-    return from_shared_expenses + from_individual_expenses
+    if from_transactions is None:
+        from_transactions = 0
+    return from_shared_expenses + from_individual_expenses - from_transactions
