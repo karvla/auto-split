@@ -44,7 +44,7 @@ def debts_page():
         to_user=creditor.name,
         amount=debt,
     )
-    return Page("Debts", debts_form(transaction, False), transaction_list())
+    return Page("Debts", debts_form(transaction, debt > 0), transaction_list())
 
 
 def transaction_list():
