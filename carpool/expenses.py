@@ -131,7 +131,11 @@ def expense_form(expense: Expense, post_target, title):
                     Label("Amount", _for="cost"),
                     Div(
                         Input(type="number", name="cost", value=expense.cost),
-                        Input(name="currency", value=currency, disabled=True),
+                        Input(
+                            name="currency",
+                            value=currency,
+                            aria_label="Read-only input",
+                        ),
                         style="display: flex",
                     ),
                 ),

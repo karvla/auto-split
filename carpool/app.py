@@ -14,7 +14,7 @@ from fasthtml.common import (
 import os
 
 
-def Page(title: str, *c):
+def Page(title: str, *c, **kwargs):
     pages = [
         ("Bookings", "/bookings"),
         ("Expenses", "/expenses"),
@@ -30,6 +30,7 @@ def Page(title: str, *c):
         Main(
             Nav(Ul(Li(H3(title))), Ul(*nav_links)),
             *c,
+            **kwargs,
             cls="container",
         ),
     )

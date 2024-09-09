@@ -47,9 +47,31 @@ def add_expense_type():
     expenses.add_column("type", col_type=str, not_null_default=ExpenseType.individual)
 
 
+def add_user_id():
+    users = db.t.users
+    users.transform(pk="name")
+
+
+def add_transaction_table():
+    transactions = db.t.transactions
+    transactions.create(
+        id=int,
+        date=str,
+        currency=str,
+        amount=float,
+        from_user=str,
+        to_user=str,
+        pk="id",
+    )
+    transactions.add_foreign_key("from_user", "users", "name")
+    transactions.add_foreign_key("to_user", "users", "name")
+
+
 migrations = [
     init_migration,
     add_expense_type,
+    add_user_id,
+    add_transaction_table,
 ]
 
 
