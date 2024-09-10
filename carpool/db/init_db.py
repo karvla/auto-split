@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from fasthtml.common import database
-from expense_type import ExpenseType
+from db.expense_type import ExpenseType
 
 db = database("data/carpool.db")
 
