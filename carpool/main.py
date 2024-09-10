@@ -1,16 +1,18 @@
-from dotenv import load_dotenv
+# pylint: skip-file
 from db.init_db import run_db_migrations
+from dotenv import load_dotenv
 
 load_dotenv()
 run_db_migrations()
-from app import app
-from fasthtml.common import serve, RedirectResponse
 import importlib
+
 import bookings
-import expenses
-import login
 import bookings_calendar
 import debts
+import expenses
+import login
+from app import app
+from fasthtml.common import RedirectResponse, serve
 
 importlib.reload(bookings)
 importlib.reload(expenses)

@@ -1,7 +1,8 @@
-from dataclasses import dataclass
-from app import app
-from fasthtml.common import Titled, Form, Input, Button, RedirectResponse
 import os
+from dataclasses import dataclass
+
+from app import app
+from fasthtml.common import *
 
 
 @dataclass

@@ -1,17 +1,6 @@
-from fasthtml.common import (
-    fast_app,
-    Beforeware,
-    RedirectResponse,
-    Main,
-    Nav,
-    H3,
-    Ul,
-    Title,
-    Li,
-    Script,
-    A,
-)
 import os
+
+from fasthtml.common import *
 
 
 def Page(title: str, *c, **kwargs):

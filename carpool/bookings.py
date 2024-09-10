@@ -1,34 +1,14 @@
-from app import (
-    app,
-    Page,
-    calendar_path,
-)
-
-from fa6_icons import svgs, dims
-from components import Icon
 import os
-from expenses import Expense, expenses
-from db.expense_type import ExpenseType
-import costs
 from datetime import datetime
-from fasthtml.common import (
-    Response,
-    Small,
-    Div,
-    Br,
-    Strong,
-    Article,
-    Main,
-    Form,
-    Group,
-    A,
-    Button,
-    Input,
-    Label,
-    Select,
-    Option,
-)
+
+import costs
+from app import Page, app, calendar_path
+from components import Icon
+from db.expense_type import ExpenseType
 from db.init_db import db
+from expenses import Expense, expenses
+from fa6_icons import dims, svgs
+from fasthtml.common import *
 
 bookings = db.t.bookings
 Booking = bookings.dataclass()
@@ -266,10 +246,10 @@ def bookings_page():
                         role="group",
                     ),
                     cls="grid",
+                    style="align-items: center;",
                 )
                 for b in bookings(order_by="date_from")
             ],
-            cls="overflow-auto",
         ),
     )
 

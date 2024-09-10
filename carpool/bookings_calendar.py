@@ -1,10 +1,10 @@
-from app import app, calendar_path
-from bookings import Booking
-from db.init_db import db
 import os
-from fasthtml.common import Response
 from datetime import datetime, timedelta
-from bookings import booking_time_range
+
+from app import app, calendar_path
+from bookings import Booking, booking_time_range
+from db.init_db import db
+from fasthtml.common import Response
 from ics import Calendar, Event
 
 bookings = db.t.bookings

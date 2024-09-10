@@ -1,30 +1,12 @@
-from app import app, Page
-from db.init_db import db
-from fa6_icons import svgs, dims
-from db.expense_type import ExpenseType
-from datetime import datetime
 import os
+from datetime import datetime
+
+from app import Page, app
 from components import Icon
-from fasthtml.common import (
-    Legend,
-    Br,
-    Main,
-    Fieldset,
-    Strong,
-    Response,
-    Textarea,
-    Div,
-    Form,
-    A,
-    Article,
-    Button,
-    Input,
-    Small,
-    Span,
-    Label,
-    Select,
-    Option,
-)
+from db.expense_type import ExpenseType
+from db.init_db import db
+from fa6_icons import dims, svgs
+from fasthtml.common import *
 
 expenses = db.t.expenses
 Expense = expenses.dataclass()

@@ -1,33 +1,16 @@
-from app import (
-    app,
-    Page,
-    calendar_path,
-)
-from fa6_icons import svgs, dims
 import os
-from expenses import Expense, expenses
-from db.expense_type import ExpenseType
-from datetime import datetime
-from fasthtml.common import (
-    A,
-    Div,
-    H4,
-    Form,
-    Select,
-    Option,
-    Article,
-    Span,
-    Input,
-    Small,
-    Mark,
-    P,
-    Button,
-)
-from components import Icon
-from db.init_db import db
-from itertools import permutations
 from dataclasses import dataclass
+from datetime import datetime
+from itertools import permutations
 from operator import itemgetter
+
+from app import Page, app, calendar_path
+from components import Icon
+from db.expense_type import ExpenseType
+from db.init_db import db
+from expenses import Expense, expenses
+from fa6_icons import dims, svgs
+from fasthtml.common import *
 
 expenses = db.t.expenses
 Expense = expenses.dataclass()
