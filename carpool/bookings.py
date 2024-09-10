@@ -3,6 +3,9 @@ from app import (
     Page,
     calendar_path,
 )
+
+from fa6_icons import svgs, dims
+from components import Icon
 import os
 from expenses import Expense, expenses
 from db.expense_type import ExpenseType
@@ -13,14 +16,12 @@ from fasthtml.common import (
     Small,
     Div,
     Br,
+    Strong,
+    Article,
     Main,
     Form,
     Group,
     A,
-    Table,
-    Tr,
-    Td,
-    Th,
     Button,
     Input,
     Label,
@@ -238,29 +239,36 @@ def bookings_page():
                 cls="secondary outline",
             ),
         ),
+        Br(),
         Main(
-            Table(
-                Tr(Th("When"), Th("Note"), Th("User"), Th(), Th()),
-                *[
-                    Tr(
-                        Td(bookings_time(b)),
-                        Td(b.note),
-                        Td(b.user),
-                        Td(A("edit", href=f"/bookings/edit/{b.id}")),
-                        Td(
-                            A(
-                                "delete",
-                                hx_delete=f"/bookings/{b.id}",
-                                hx_confirm="Are you sure you want to delete this booking?",
-                                hx_swap="delete",
-                                hx_target="closest tr",
-                            )
+            *[
+                Article(
+                    Strong(b.note),
+                    Div(Icon(svgs.user.regular), b.user),
+                    Div(Icon(svgs.clock.regular), bookings_time(b)),
+                    Div(
+                        A(
+                            Icon(svgs.pen.solid),
+                            cls="secondary",
+                            role="button",
+                            href=f"/bookings/edit/{b.id}",
                         ),
-                    )
-                    for b in bookings(order_by="date_from")
-                ],
-                cls="striped",
-            ),
+                        A(
+                            Icon(svgs.trash_can.regular),
+                            role="button",
+                            hx_delete=f"/bookings/{b.id}",
+                            hx_confirm="Are you sure you want to delete this booking?",
+                            hx_swap="delete",
+                            hx_target="closest article",
+                            cls="secondary",
+                        ),
+                        style="width: auto; margin-bottom: 0",
+                        role="group",
+                    ),
+                    cls="grid",
+                )
+                for b in bookings(order_by="date_from")
+            ],
             cls="overflow-auto",
         ),
     )
@@ -277,4 +285,4 @@ def bookings_time(booking: Booking) -> str:
     if date_from.date() == date_to.date():
         return Small(date_from.date())
     else:
-        return Small(date_from.date()), Small(Br(), date_to.date())
+        return Small(f"{date_from.date()} - {date_to.date()}")

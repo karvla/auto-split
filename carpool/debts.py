@@ -3,6 +3,7 @@ from app import (
     Page,
     calendar_path,
 )
+from fa6_icons import svgs, dims
 import os
 from expenses import Expense, expenses
 from db.expense_type import ExpenseType
@@ -22,6 +23,7 @@ from fasthtml.common import (
     P,
     Button,
 )
+from components import Icon
 from db.init_db import db
 from itertools import permutations
 from dataclasses import dataclass
@@ -63,8 +65,9 @@ def transaction_card(t: Transaction):
         P(f"{t.from_user} payed {t.to_user} {t.amount} {t.currency}"),
         Span(
             t.date,
-            A(
-                "delete",
+            Button(
+                Icon(svgs.trash_can.regular),
+                cls="secondary",
                 hx_delete=f"/debts/transactions/{t.id}",
                 hx_target="#transactions-list",
                 hx_swap="outerHTML",

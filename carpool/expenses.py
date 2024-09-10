@@ -1,20 +1,22 @@
 from app import app, Page
 from db.init_db import db
+from fa6_icons import svgs, dims
 from db.expense_type import ExpenseType
 from datetime import datetime
 import os
+from components import Icon
 from fasthtml.common import (
     Legend,
+    Br,
+    Main,
     Fieldset,
+    Strong,
     Response,
     Textarea,
     Div,
     Form,
     A,
-    Table,
-    Tr,
-    Td,
-    Th,
+    Article,
     Button,
     Input,
     Small,
@@ -33,29 +35,40 @@ users = db.t.users
 def get_expenses_page():
     return Page(
         "Expenses",
-        A("Add expense", href="/expenses/add", role="button"),
-        Table(
-            Tr(Th("Note"), Th("Date"), Th("User"), Th("Amount"), Th(), Th()),
+        Div(
+            A("Add expense", href="/expenses/add", role="button"),
+        ),
+        Br(),
+        Main(
             *[
-                Tr(
-                    Td(e.title),
-                    Td(e.date),
-                    Td(e.user),
-                    Td(f"{round(e.cost)} {e.currency}"),
-                    Td(A("edit", href=f"/expenses/edit/{e.id}")),
-                    Td(
-                        A(
-                            "delete",
+                Article(
+                    Strong(e.title),
+                    Div(Icon(svgs.clock.regular), e.date),
+                    Div(Icon(svgs.user.regular), e.user),
+                    Div(Icon(svgs.coins.solid), f"{round(e.cost)} {e.currency}"),
+                    Div(
+                        Button(
+                            Icon(svgs.pen.solid),
+                            cls="secondary",
+                            hx_get=f"/expenses/edit/{e.id}",
+                            hx_target="body",
+                        ),
+                        Button(
+                            Icon(svgs.trash_can.regular),
                             hx_delete=f"/expenses/{e.id}",
-                            hx_confirm="Are you sure you want to delete this expense?",
+                            hx_confirm="Are you sure you want to delete this booking?",
                             hx_swap="delete",
-                            hx_target="closest tr",
-                        )
+                            hx_target="closest article",
+                            cls="secondary",
+                        ),
+                        style="width: auto; margin-bottom: 0",
+                        role="group",
                     ),
+                    cls="grid",
+                    style="align-items: center;",
                 )
                 for e in expenses()
             ],
-            cls="striped",
         ),
     )
 
