@@ -1,0 +1,8 @@
+[flake8]
+exclude = carpool/main.py
+
+extend-ignore =
+	F405,
+	E501,
+	F403
+	E203,

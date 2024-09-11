@@ -7,5 +7,9 @@ Simple app for sharing a car
 ## Installation
 
 1. Copy `.env.example` to `.env` and replace the contents with prefered constants.
-2. Install dependencies `pip install -r requirements.txt`
-3. Run `python3 car-pool/main.py`
+2. Install dependencies using Poetry 
+    ```
+    pip install poetry
+    poetry install
+    ```
+3. Run `poetry run car-pool/main.py`

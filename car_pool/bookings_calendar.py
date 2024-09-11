@@ -1,8 +1,7 @@
 import os
-from datetime import datetime, timedelta
 
 from app import app, calendar_path
-from bookings import Booking, booking_time_range
+from bookings import Booking
 from db.init_db import db
 from fasthtml.common import Response
 from ics import Calendar, Event

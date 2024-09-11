@@ -5,7 +5,7 @@ from app import Page, app
 from components import Icon
 from db.expense_type import ExpenseType
 from db.init_db import db
-from fa6_icons import dims, svgs
+from fa6_icons import svgs
 from fasthtml.common import *
 
 expenses = db.t.expenses
