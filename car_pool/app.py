@@ -1,5 +1,4 @@
-import os
-
+from config import CALENDAR_SECRET, DEBUG
 from fasthtml.common import *
 
 
@@ -31,9 +30,9 @@ def before(req, sess):
         return RedirectResponse("/login", status_code=303)
 
 
-calendar_path = f"/{os.getenv('CALENDAR_SECRET')}.ics"
+calendar_path = f"/{CALENDAR_SECRET}.ics"
 beforeware = Beforeware(before, skip=["/login", calendar_path])
-use_live_reload = os.getenv("DEBUG") is not None
+use_live_reload = DEBUG is not None
 app, _ = fast_app(
     live=use_live_reload,
     before=beforeware,

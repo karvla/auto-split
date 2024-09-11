@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 
 from app import app
@@ -34,8 +33,7 @@ def login(credentials: Credentials, sess):
 
     # TODO: Make authentication secure
     if not (
-        credentials.name == os.getenv("ADMIN_USERNAME")
-        and credentials.password == os.getenv("ADMIN_PASSWORD")
+        credentials.name == ADMIN_USERNAME and credentials.password == ADMIN_PASSWORD
     ):
         return RedirectResponse("/login", status_code=303)
     sess["auth"] = credentials.name

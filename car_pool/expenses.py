@@ -1,8 +1,8 @@
-import os
 from datetime import datetime
 
 from app import Page, app
 from components import Icon
+from config import CURRENCY
 from db.expense_type import ExpenseType
 from db.init_db import load_database
 from fa6_icons import svgs
@@ -109,7 +109,7 @@ def validate_expense(expense: Expense) -> (bool, str | None):
 
 
 def expense_form(expense: Expense, post_target, title):
-    currency = os.getenv("CURRENCY")
+    currency = CURRENCY
 
     print(expense)
     return (

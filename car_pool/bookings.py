@@ -1,9 +1,16 @@
-import os
 from datetime import datetime
 
 import costs
 from app import Page, app, calendar_path
 from components import Icon
+from config import (
+    BASE_URL,
+    COST_PER_DISTANCE,
+    CURRENCY,
+    DISTANCE_UNIT,
+    FUEL_EFFICIENCY,
+    VOLUME_UNIT,
+)
 from db.expense_type import ExpenseType
 from db.init_db import load_database
 from expenses import Expense, expenses
@@ -45,7 +52,7 @@ def booking_expense(booking: Booking) -> Expense:
         note=expense_note,
         user=booking.user,
         cost=get_ride_cost(booking.distance),
-        currency=os.getenv("CURRENCY"),
+        currency=CURRENCY,
         type=ExpenseType.individual,
     )
 
@@ -167,7 +174,7 @@ def booking_form(booking: Booking, title, post_target):
                         hx_swap="inner_html",
                         hx_target="#cost",
                     ),
-                    Input(value=os.getenv("DISTANCE_UNIT"), readonly=True),
+                    Input(value=DISTANCE_UNIT, readonly=True),
                     style="display: flex",
                 ),
             ),
@@ -183,8 +190,8 @@ def booking_form(booking: Booking, title, post_target):
 
 def get_ride_cost(distance: int):
     cost_per_volume = float(costs.get_gas_price())
-    volume_per_distance = float(os.getenv("FUEL_EFFICIENCY"))
-    fixed_cost_per_distance = float(os.getenv("COST_PER_DISTANCE"))
+    volume_per_distance = FUEL_EFFICIENCY
+    fixed_cost_per_distance = COST_PER_DISTANCE
     return distance * (cost_per_volume * volume_per_distance + fixed_cost_per_distance)
 
 
@@ -193,11 +200,11 @@ def get_cost_description(distance: int | None):
     if distance is None:
         return Br(), Br(), Br()
     cost_per_volume = float(costs.get_gas_price())
-    volume_per_distance = float(os.getenv("FUEL_EFFICIENCY"))
-    fixed_cost_per_distance = float(os.getenv("COST_PER_DISTANCE"))
-    volume_unit = os.getenv("VOLUME_UNIT")
-    distance_unit = os.getenv("DISTANCE_UNIT")
-    currency = os.getenv("CURRENCY")
+    volume_per_distance = FUEL_EFFICIENCY
+    fixed_cost_per_distance = COST_PER_DISTANCE
+    volume_unit = VOLUME_UNIT
+    distance_unit = DISTANCE_UNIT
+    currency = CURRENCY
 
     total = get_ride_cost(distance)
     return (
@@ -214,7 +221,7 @@ def get_cost_description(distance: int | None):
 def bookings_page():
 
     def calendar_url():
-        return f"{os.getenv('BASE_URL')}{calendar_path}"
+        return f"{BASE_URL}{calendar_path}"
 
     return Page(
         "Bookings",
