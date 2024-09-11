@@ -1,6 +1,0 @@
-python-fasthtml==0.4.4
-requests==2.25.1
-ics==0.7.2
-fa6-icons==0.0.2
-
-
