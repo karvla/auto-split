@@ -5,11 +5,12 @@ import costs
 from app import Page, app, calendar_path
 from components import Icon
 from db.expense_type import ExpenseType
-from db.init_db import db
+from db.init_db import load_database
 from expenses import Expense, expenses
 from fa6_icons import svgs
 from fasthtml.common import *
 
+db = load_database()
 bookings = db.t.bookings
 Booking = bookings.dataclass()
 users = db.t.users
@@ -98,21 +99,27 @@ def delete_booking(id: int):
 @app.post("/bookings/validate")
 def validate_booking(booking: Booking) -> (bool, str | None):
     date_from, date_to = booking_time_range(booking)
+
     if not date_from or not date_to:
-        return False, "Pls add booking duration"
-    if date_from > date_to:
+        return False, "Please add a valid booking duration"
+
+    if date_from >= date_to:
         return False, "Start time should be before end time"
+
     other_bookings = (
         bookings() if booking.id is None else bookings(where=f"id != {booking.id}")
     )
-    for f, t in map(booking_time_range, other_bookings):
+
+    for other_booking in other_bookings:
+        other_date_from, other_date_to = booking_time_range(other_booking)
+
         if (
-            f < date_from < t
-            or f < date_to < t
-            or date_from < t < date_to
-            or date_from < f < date_to
+            (other_date_from <= date_from < other_date_to)
+            or (other_date_from < date_to <= other_date_to)
+            or (date_from <= other_date_from and date_to >= other_date_to)
         ):
             return False, "There's already a booking for this time span"
+
     return True, None
 
 

@@ -4,13 +4,15 @@ from datetime import datetime
 from app import Page, app
 from components import Icon
 from db.expense_type import ExpenseType
-from db.init_db import db
+from db.init_db import load_database
 from fa6_icons import svgs
 from fasthtml.common import *
 
+db = load_database()
 expenses = db.t.expenses
 Expense = expenses.dataclass()
 users = db.t.users
+User = users.dataclass()
 
 
 @app.get("/expenses")

@@ -1,5 +1,5 @@
 [flake8]
-exclude = carpool/main.py
+exclude = car_pool/main.py
 
 extend-ignore =
 	F405,
