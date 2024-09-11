@@ -105,13 +105,13 @@ def delete_expense(id: int):
 
 @app.post("/expenses/validate")
 def validate_expense(expense: Expense) -> (bool, str | None):
+    if expense.cost is None or expense.cost <= 0.0:
+        return False, "Please enter an amount"
     return True, None
 
 
 def expense_form(expense: Expense, post_target, title):
-    currency = CURRENCY
 
-    print(expense)
     return (
         Page(
             title,
@@ -130,7 +130,7 @@ def expense_form(expense: Expense, post_target, title):
                         Input(type="number", name="cost", value=expense.cost),
                         Input(
                             name="currency",
-                            value=currency,
+                            value=CURRENCY,
                             aria_label="Read-only input",
                         ),
                         style="display: flex",
