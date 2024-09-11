@@ -3,18 +3,15 @@ from datetime import datetime
 from test_db import db
 
 from car_pool.debts import (
+    Transaction,
     User,
     add_transaction,
-    delete_transaction,
-    validate_form,
-    total_debt,
     debt,
+    delete_transaction,
+    total_debt,
+    validate_form,
 )
-from car_pool.expenses import (
-    Expense,
-    add_new_expense,
-)
-from car_pool.debts import Transaction
+from car_pool.expenses import Expense, add_new_expense
 
 
 def test_add_individual_expense(db):
