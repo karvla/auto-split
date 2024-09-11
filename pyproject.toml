@@ -12,6 +12,7 @@ python-fasthtml = "0.4.4"
 requests = "2.25.1"
 fa6-icons = "^0.0.2"
 ics = "^0.7.2"
+fastapi = "^0.114.1"
 
 
 [tool.poetry.group.dev.dependencies]
