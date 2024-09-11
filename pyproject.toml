@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 python-fasthtml = "0.4.4"
 requests = "2.25.1"
 fa6-icons = "^0.0.2"
