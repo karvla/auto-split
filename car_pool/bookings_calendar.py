@@ -2,10 +2,11 @@ import os
 
 from app import app, calendar_path
 from bookings import Booking
-from db.init_db import db
+from db.init_db import load_database
 from fasthtml.common import Response
 from ics import Calendar, Event
 
+db = load_database()
 bookings = db.t.bookings
 
 

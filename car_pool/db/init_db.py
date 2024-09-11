@@ -2,13 +2,23 @@ import os
 from datetime import datetime
 
 from db.expense_type import ExpenseType
+from dotenv import load_dotenv
 from fasthtml.common import database
 
-db = database("data/carpool.db")
+db = None
 
 
-def init_migration():
+def load_database(test=False):
+    global db
+    if db is not None:
+        return db
+    db = database("data/carpool.db" if not test else ":memory:")
+    run_db_migrations(db)
+    return db
 
+
+def init_migration(db):
+    load_dotenv()
     users = db.t.users
     if users not in db.t:
         users.create(name=str, pk="name")
@@ -43,17 +53,17 @@ def init_migration():
         bookings.add_foreign_key("expense_id", "expenses", "id")
 
 
-def add_expense_type():
+def add_expense_type(db):
     expenses = db.t.expenses
     expenses.add_column("type", col_type=str, not_null_default=ExpenseType.individual)
 
 
-def add_user_id():
+def add_user_id(db):
     users = db.t.users
     users.transform(pk="name")
 
 
-def add_transaction_table():
+def add_transaction_table(db):
     transactions = db.t.transactions
     transactions.create(
         id=int,
@@ -76,7 +86,7 @@ migrations = [
 ]
 
 
-def run_db_migrations():
+def run_db_migrations(db):
     migrations_table = db.t.migrations
     if migrations_table not in db.t:
         migrations_table.create(
@@ -91,7 +101,7 @@ def run_db_migrations():
         date = datetime.utcnow().ctime()
         print("Running migration", title, end=" ")
         try:
-            migration()
+            migration(db)
         except Exception as e:
             print("FAIL:", e)
             migrations_table.insert(
