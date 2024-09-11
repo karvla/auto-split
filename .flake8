@@ -1,8 +1,9 @@
 [flake8]
-exclude = car_pool/main.py
+exclude = car_pool/main.py, test/*
 
 extend-ignore =
 	F405,
 	E501,
 	F403
 	E203,
+

@@ -1,7 +1,6 @@
-import os
-
 from app import app, calendar_path
 from bookings import Booking
+from config import BASE_URL
 from db.init_db import load_database
 from fasthtml.common import Response
 from ics import Calendar, Event
@@ -38,4 +37,4 @@ def to_ics_content(bookings: [Booking]) -> str:
 
 
 def booking_edit_link(b: Booking):
-    return f"{os.getenv('BASE_URL')}/bookings/edit/{b.id}"
+    return f"{BASE_URL}/bookings/edit/{b.id}"

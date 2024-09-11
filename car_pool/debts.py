@@ -1,10 +1,10 @@
-import os
 from datetime import datetime
 from itertools import permutations
 from operator import itemgetter
 
 from app import Page, app
 from components import Icon
+from config import CURRENCY
 from db.expense_type import ExpenseType
 from db.init_db import load_database
 from fa6_icons import svgs
@@ -92,7 +92,7 @@ def validate_form(transaction: Transaction, input: str):
 
 
 def debts_form(transaction: Transaction, is_valid):
-    currency = os.getenv("CURRENCY")
+    currency = CURRENCY
     return Form(
         Div(
             Div(
@@ -165,7 +165,7 @@ def all_debts() -> [(User, User, float)]:
 
 
 def current_debt():
-    currency = os.getenv("CURRENCY")
+    currency = CURRENCY
     return Div(
         *[
             Small(f"{a.name} owes {b.name} {round(d)} {currency}")
