@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from app import app
 from fasthtml.common import *
+from config import ADMIN_USERNAME, ADMIN_PASSWORD
 
 
 @dataclass
