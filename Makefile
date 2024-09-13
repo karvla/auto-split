@@ -1,5 +1,12 @@
 SRC_DIR := .
 
+install:
+	pip install poetry
+	poetry install
+
+run:
+	poetry run python3 car_pool/main.py
+
 format:
 	isort $(SRC_DIR)
 	black $(SRC_DIR)
