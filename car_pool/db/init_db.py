@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 
+from config import DATABASE
 from db.expense_type import ExpenseType
 from dotenv import load_dotenv
 from fasthtml.common import database
@@ -8,11 +9,11 @@ from fasthtml.common import database
 db = None
 
 
-def load_database(test=False):
+def load_database():
     global db
     if db is not None:
         return db
-    db = database("data/carpool.db" if not test else ":memory:")
+    db = database(DATABASE)
     run_db_migrations(db)
     return db
 

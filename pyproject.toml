@@ -20,6 +20,7 @@ pytest = "^8.3.3"
 flake8 = "^7.1.1"
 black = "^24.8.0"
 isort = "^5.13.2"
+pytest-env = "^1.1.4"
 
 [build-system]
 requires = ["poetry-core"]
@@ -28,3 +29,11 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 pythonpath = ["car_pool"]
 
+[tool.pytest_env]
+USERS = "user1,user2,user3"
+CURRENCY = "USD"
+FUEL_EFFICIENCY = "0.1"
+COST_PER_DISTANCE = "0.5"
+DISTANCE_UNIT = "km"
+VOLUME_UNIT = "liters"
+DATABASE = ":memory:"
