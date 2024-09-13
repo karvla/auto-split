@@ -7,9 +7,9 @@ format:
 lint:
 	flake8 $(SRC_DIR)
 
-lint:
+test:
 	pytest $(SRC_DIR)
 
-pre-commit: format lint pytest
+pre-commit: format lint test
 
-all: format lint pytest
+all: format lint test
