@@ -18,3 +18,4 @@ FUEL_EFFICIENCY = float(os.getenv("FUEL_EFFICIENCY", 0))
 COST_PER_DISTANCE = float(os.getenv("COST_PER_DISTANCE", 0))
 
 BASE_URL = os.getenv("BASE_URL")
+DATABASE = os.getenv("DATABASE", "data/carpool.db")
