@@ -1,4 +1,4 @@
-#  🚘🌊 car-pool 
+#  🚘🌊 car-pool ![Build Status](https://github.com/karvla/car-pool/actions/workflows/ci.yml/badge.svg)
 Simple app for sharing a car
 
 * ✅ Make reservations and sync them to calendar
