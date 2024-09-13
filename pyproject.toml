@@ -29,6 +29,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 pythonpath = ["car_pool"]
 
+[tool.isort]
+profile = "black"
+
 [tool.pytest_env]
 USERS = "user1,user2,user3"
 CURRENCY = "USD"
