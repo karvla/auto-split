@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 from app import app
-from config import ADMIN_PASSWORD, ADMIN_USERNAME
+from auth import verify_password
+from db.init_db import load_database
 from fasthtml.common import *
 
 
@@ -29,14 +30,14 @@ def login_page():
 
 @app.post("/login")
 def login(credentials: Credentials, sess):
-    if not credentials.name or not credentials.password:
+    users = load_database().t.users
+    user = users.get(credentials.name)
+    if user is None:
         return RedirectResponse("/login", status_code=303)
 
-    # TODO: Make authentication secure
-    if not (
-        credentials.name == ADMIN_USERNAME and credentials.password == ADMIN_PASSWORD
-    ):
+    if not verify_password(user.password_salt, credentials.password):
         return RedirectResponse("/login", status_code=303)
+
     sess["auth"] = credentials.name
     return RedirectResponse("/", status_code=303)
 

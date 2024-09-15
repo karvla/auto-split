@@ -58,14 +58,15 @@ def get_expenses_page():
 
 
 @app.get("/expenses/add")
-def add_expenses_page(error_msg=""):
+def add_expenses_page(sess, error_msg=""):
+    user = sess["auth"]
     return expense_form(
         Expense(
             id=None,
             title=None,
             note=None,
             date=datetime.now().date(),
-            user=None,
+            user=user,
             type=ExpenseType.individual,
             cost=0,
         ),
@@ -140,11 +141,12 @@ def expense_form(expense: Expense, post_target, title):
                     Label("Payed by", _for="by"),
                     Select(
                         *[
-                            Option(u.name, selected=u.name == expense.user)
+                            Option(
+                                u.name, value=u.name, selected=expense.user == u.name
+                            )
                             for u in users()
                         ],
                         name="user",
-                        value=expense.currency,
                     ),
                 ),
                 Legend("Expense type:"),

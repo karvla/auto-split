@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
 
-from config import DATABASE
+from auth import hash_password
+from config import ADMIN_PASSWORD, ADMIN_USERNAME, DATABASE
 from db.expense_type import ExpenseType
 from dotenv import load_dotenv
 from fasthtml.common import database
@@ -79,11 +80,25 @@ def add_transaction_table(db):
     transactions.add_foreign_key("to_user", "users", "name")
 
 
+def add_user_password(db):
+    users = db.t.users
+    users.insert({"name": ADMIN_USERNAME})
+    users.add_column("password_salt", col_type="str")
+
+    # All users are given the admin password
+    # since they have all used this to sign in at
+    # this point
+    for user in users.rows:
+        user["password_salt"] = hash_password(ADMIN_PASSWORD)
+        users.upsert(user)
+
+
 migrations = [
     init_migration,
     add_expense_type,
     add_user_id,
     add_transaction_table,
+    add_user_password,
 ]
 
 
