@@ -33,7 +33,9 @@ pythonpath = ["car_pool"]
 profile = "black"
 
 [tool.pytest_env]
-USERS = "user1,user2,user3"
+ADMIN_USERNAME = "username"
+ADMIN_PASSWORD = "password"
+USERS = "user1,user2"
 CURRENCY = "USD"
 FUEL_EFFICIENCY = "0.1"
 COST_PER_DISTANCE = "0.5"

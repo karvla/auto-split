@@ -25,14 +25,15 @@ User = users.dataclass()
 
 
 @app.get("/bookings/add")
-def add_booking_form():
+def add_booking_form(sess):
+    user_name = sess["auth"]
     return booking_form(
         Booking(
             id=None,
             expense_id=None,
             date_from=None,
             date_to=None,
-            user=None,
+            user=user_name,
             note=None,
             distance=None,
         ),
@@ -146,7 +147,10 @@ def booking_form(booking: Booking, title, post_target):
                 style="flex-direction: row",
             ),
             Select(
-                *[Option(u.name, selected=u.name == booking.user) for u in users()],
+                *[
+                    Option(u.name, value=u.name, selected=booking.user == u.name)
+                    for u in users()
+                ],
                 name="user",
             ),
             Input(

@@ -1,5 +1,7 @@
 SRC_DIR := .
 
+.PHONY:  pre-commit test
+
 install:
 	pip install poetry
 	poetry install
@@ -20,3 +22,4 @@ test:
 pre-commit: format lint test
 
 all: format lint test
+
