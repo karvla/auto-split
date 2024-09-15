@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from app import Page, app
-from components import Icon
+from app import app
+from components import Icon, Page
 from config import CURRENCY
 from db.expense_type import ExpenseType
 from db.init_db import load_database
