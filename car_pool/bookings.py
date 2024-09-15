@@ -1,8 +1,8 @@
 from datetime import datetime
 
 import costs
-from app import Page, app, calendar_path
-from components import Icon
+from app import app, calendar_path
+from components import Icon, Page
 from config import (
     BASE_URL,
     COST_PER_DISTANCE,
