@@ -26,6 +26,7 @@ def test_add_individual_expense(db):
         type="individual",
         cost=100,
         currency="USD",
+        car_id=1,
     )
 
     add_new_expense(new_expense)
@@ -44,6 +45,7 @@ def test_add_shared_expense(db):
         type="shared",
         cost=200,
         currency="USD",
+        car_id=1,
     )
 
     add_new_expense(new_expense)
@@ -62,10 +64,10 @@ def test_total_debt(db):
         type="individual",
         cost=100,
         currency="USD",
+        car_id=1,
     )
-    add_new_expense(new_expense)
+    add_new_expense(new_expense, {"auth": user1.name})
 
-    # Add shared expense for user2
     new_expense = Expense(
         id=None,
         title="Shared Expense",
@@ -75,13 +77,14 @@ def test_total_debt(db):
         type="shared",
         cost=200,
         currency="USD",
+        car_id=1,
     )
-    add_new_expense(new_expense)
+    add_new_expense(new_expense, {"auth": user1.name})
 
-    assert total_debt(user1, user2) == round((200 / 3 + 100 / (len(db.t.users()) - 1)))
-    assert total_debt(user3, user2) == round(200 / 3)
-    assert total_debt(user2, user1) == 0
-    assert total_debt(user2, user3) == 0
+    assert total_debt(user1.name, user2.name) == round((200 / 3 + 100 / (3 - 1)))
+    assert total_debt(user3.name, user2.name) == round(200 / 3)
+    assert total_debt(user2.name, user1.name) == 0
+    assert total_debt(user2.name, user3.name) == 0
 
 
 def test_add_transaction(db):
@@ -97,7 +100,7 @@ def test_add_transaction(db):
         date=datetime.now().date().isoformat(),
     )
 
-    add_transaction(new_transaction)
+    add_transaction(new_transaction, {"auth": user1.name})
     assert len(transactions()) == 1
 
 
@@ -114,10 +117,10 @@ def test_delete_transaction(db):
         date=datetime.now().date().isoformat(),
     )
 
-    add_transaction(new_transaction)
+    add_transaction(new_transaction, {"auth": user1.name})
     transaction = transactions()[0]
 
-    delete_transaction(transaction.id)
+    delete_transaction(transaction.id, {"auth": user1.name})
     assert len(transactions()) == 0
 
 
@@ -134,5 +137,5 @@ def test_validate_form(db):
         date=datetime.now().date().isoformat(),
     )
 
-    is_valid = validate_form(new_transaction, "amount")
+    is_valid = validate_form(new_transaction, "amount", {"auth": user1.name})
     assert is_valid

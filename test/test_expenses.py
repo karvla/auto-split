@@ -28,6 +28,7 @@ def test_add_new_expense(db):
         type="individual",
         cost=100,
         currency="USD",
+        car_id=1,
     )
 
     add_new_expense(new_expense)
@@ -46,6 +47,7 @@ def test_edit_expense(db):
         type="individual",
         cost=100,
         currency="USD",
+        car_id=1,
     )
 
     add_new_expense(new_expense)
@@ -69,6 +71,7 @@ def test_validate_expense(db):
         type="individual",
         cost=100,
         currency="USD",
+        car_id=1,
     )
 
     is_valid, msg = validate_expense(new_expense)
@@ -87,6 +90,7 @@ def test_validate_expense(db):
         type="individual",
         cost=None,
         currency="USD",
+        car_id=1,
     )
 
     is_valid, msg = validate_expense(new_expense)
@@ -105,6 +109,7 @@ def test_delete_expense(db):
         type="individual",
         cost=100,
         currency="USD",
+        car_id=1,
     )
 
     add_new_expense(new_expense)

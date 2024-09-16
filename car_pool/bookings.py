@@ -142,8 +142,8 @@ def delete_booking(id: int, sess=None):
     if not has_access(booking, sess):
         return Response(status_code=401)
 
-    expenses.delete_where(where="id == ?", where_args=[booking.expense_id])
     bookings.delete(id)
+    expenses.delete_where(where="id == ?", where_args=[booking.expense_id])
     return Response(headers={"HX-Location": "/bookings"})
 
 
