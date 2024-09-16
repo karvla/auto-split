@@ -21,20 +21,26 @@ Transaction = transactions.dataclass()
 
 
 @app.get("/debts")
-def debts_page():
-    (debtor, creditor, debt), *_ = sorted(all_debts(), key=itemgetter(2), reverse=True)
-    transaction = Transaction(
-        from_user=debtor.name,
-        to_user=creditor.name,
-        amount=0,
+def debts_page(sess):
+    user = sess["auth"]
+    (debtor, creditor, debt), *_ = sorted(
+        all_debts(user), key=itemgetter(2), reverse=True
     )
-    return Page("Debts", debts_form(transaction, True), transaction_list())
+    transaction = Transaction(
+        from_user=debtor,
+        to_user=creditor,
+        amount=debt,
+    )
+    users = connected_users(sess["auth"])
+    return Page(
+        "Debts", debts_form(transaction, users, debt > 0), transaction_list(user)
+    )
 
 
-def transaction_list():
+def transaction_list(user: str):
     return Div(
         H4("Transactions"),
-        current_debt(),
+        current_debt(user),
         Div(
             *[transaction_card(t) for t in transactions(order_by="date")],
         ),
@@ -60,20 +66,26 @@ def transaction_card(t: Transaction):
 
 
 @app.post("/debts/transactions")
-def add_transaction(transaction: Transaction):
+def add_transaction(transaction: Transaction, sess=None):
+    if not has_access(transaction, sess):
+        return Response(status_code=401)
+
     transaction.date = datetime.now().date().isoformat()
     transactions.insert(transaction)
-    return transaction_list()
+    return transaction_list(sess["auth"])
 
 
 @app.delete("/debts/transactions/{id}")
-def delete_transaction(id: int):
+def delete_transaction(id: int, sess=None):
+    t = transactions.get(id)
+    if not has_access(t, sess):
+        return Response(status_code=401)
     transactions.delete(id)
-    return transaction_list()
+    return transaction_list(sess["auth"])
 
 
 @app.post("/debts/validate/{input}")
-def validate_form(transaction: Transaction, input: str):
+def validate_form(transaction: Transaction, input: str, sess=None):
     if input == "from" and transaction.from_user == transaction.to_user:
         transaction.to_user = next(
             users.rows_where("name != ?", [transaction.from_user])
@@ -84,14 +96,14 @@ def validate_form(transaction: Transaction, input: str):
         )["name"]
 
     if input != "amount":
-        transaction.amount = total_debt(
-            User(name=transaction.from_user), User(name=transaction.to_user)
+        transaction.amount = float(
+            total_debt(transaction.from_user, transaction.to_user)
         )
     valid = transaction.amount > 0
-    return debts_form(transaction, valid)
+    return debts_form(transaction, connected_users(sess["auth"]), valid)
 
 
-def debts_form(transaction: Transaction, is_valid):
+def debts_form(transaction: Transaction, users: list[str], is_valid: bool):
     currency = CURRENCY
     return Form(
         Div(
@@ -99,11 +111,11 @@ def debts_form(transaction: Transaction, is_valid):
                 Select(
                     *[
                         Option(
-                            u.name,
-                            valud=u.name,
-                            selected=u.name == transaction.from_user,
+                            user,
+                            value=user,
+                            selected=user == transaction.from_user,
                         )
-                        for u in users()
+                        for user in users
                     ],
                     name="from_user",
                     hx_post="/debts/validate/from",
@@ -116,7 +128,7 @@ def debts_form(transaction: Transaction, is_valid):
                 Input(
                     type="number",
                     style="width: 100px",
-                    value=transaction.amount,
+                    value=transaction.amount if transaction.amount else "0",
                     name="amount",
                     id="#amount",
                     hx_post="/debts/validate/amount",
@@ -135,11 +147,11 @@ def debts_form(transaction: Transaction, is_valid):
                 Select(
                     *[
                         Option(
-                            u.name,
-                            valud=u.name,
-                            selected=u.name == transaction.to_user,
+                            user,
+                            value=user,
+                            selected=user == transaction.to_user,
                         )
-                        for u in users()
+                        for user in users
                     ],
                     name="to_user",
                     hx_post="/debts/validate/to",
@@ -162,22 +174,22 @@ def debts_form(transaction: Transaction, is_valid):
     )
 
 
-def all_debts() -> [(User, User, float)]:
-    return [(a, b, total_debt(a, b)) for a, b in permutations(users(), 2)]
+def all_debts(user: str) -> [(str, str, float)]:
+    return [(a, b, total_debt(a, b)) for a, b in permutations(connected_users(user), 2)]
 
 
-def current_debt():
+def current_debt(user: str):
     currency = CURRENCY
     return Div(
         *[
-            (Small(f"{a.name} owes {b.name} {round(d)} {currency}"), Br())
-            for a, b, d in all_debts()
+            (Small(f"{a} owes {b} {round(d)} {currency}"), Br())
+            for a, b, d in all_debts(user)
             if d > 0
         ]
     )
 
 
-def total_debt(debtor: User, creditor):
+def total_debt(debtor: str, creditor: str):
     return round(max(0, debt(debtor, creditor) - debt(creditor, debtor)))
 
 
@@ -202,9 +214,9 @@ def connected_users(user: str):
     )
 
 
-def debt(debtor: User, creditor: User):
+def debt(debtor: str, creditor: str):
     current_date = datetime.now().date().isoformat()
-    all_users = connected_users(debtor.name)
+    all_users = connected_users(debtor)
     from_shared_expenses = next(
         db.query(
             f"""
@@ -216,7 +228,7 @@ def debt(debtor: User, creditor: User):
             AND expenses.date <= ?
         """,
             [
-                creditor.name,
+                creditor,
                 ExpenseType.shared,
                 current_date,
             ],
@@ -234,7 +246,7 @@ def debt(debtor: User, creditor: User):
             AND expenses.date <= ?
             """,
             [
-                debtor.name,
+                debtor,
                 ExpenseType.individual,
                 current_date,
             ],
@@ -250,7 +262,7 @@ def debt(debtor: User, creditor: User):
         WHERE from_user = ?
             AND to_user = ?
             """,
-            [debtor.name, creditor.name],
+            [debtor, creditor],
         ),
         None,  # Default value if no results are returned
     )
@@ -265,3 +277,10 @@ def debt(debtor: User, creditor: User):
     if from_transactions is None:
         from_transactions = 0
     return from_shared_expenses + from_individual_expenses - from_transactions
+
+
+def has_access(transaction: Transaction, sess):
+    if sess is None:
+        return True
+    users = connected_users(sess["auth"])
+    return transaction.from_user in users and transaction.to_user in users

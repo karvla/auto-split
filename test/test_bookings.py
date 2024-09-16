@@ -10,11 +10,6 @@ from bookings import (
 from test_db import db
 
 
-def test_users_table(db):
-    users = db.t.users
-    assert users.exists()
-
-
 def test_add_new_booking(db):
     bookings = db.t.bookings
 
@@ -26,6 +21,7 @@ def test_add_new_booking(db):
         user="user1",
         note="Test booking",
         distance=100,
+        car_id=1,
     )
 
     add_new_booking(new_booking)
@@ -66,6 +62,7 @@ def test_validate_booking(db):
         user="user1",
         note="Test booking",
         distance=100,
+        car_id=1,
     )
 
     is_valid, msg = validate_booking(new_booking)
@@ -89,6 +86,7 @@ def test_delete_booking(db):
         user="user1",
         note="Test booking",
         distance=100,
+        car_id=1,
     )
 
     add_new_booking(new_booking)

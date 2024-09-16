@@ -12,6 +12,7 @@ def load_database():
     if db is not None:
         return db
     db = database(DATABASE)
+    db.conn.execute("PRAGMA foreign_keys = ON;")
     run_db_migrations(db)
     return db
 

@@ -9,8 +9,8 @@ db = load_database()
 @pytest.fixture(autouse=True)
 def db():
     db = load_database()
-    run_db_migrations(db)
     yield db
 
-    for table in db.table_names():
-        db[table].drop()
+    db.conn.execute("delete from bookings")
+    db.conn.execute("delete from expenses")
+    db.conn.execute("delete from transactions")
