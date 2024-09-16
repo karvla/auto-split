@@ -1,3 +1,4 @@
+from dataclasses import fields
 from datetime import datetime
 
 import costs
@@ -24,9 +25,37 @@ users = db.t.users
 User = users.dataclass()
 
 
+def get_bookings(sess):
+    return map(
+        lambda b: Booking(**b),
+        db.query(
+            f"""
+    select bookings.{',bookings.'.join(map(lambda f: f.name, fields(Booking)))}
+    from bookings
+    left join users
+    on users.car_id = bookings.car_id
+    where users.name = ?
+                        """,
+            [sess["auth"]],
+        ),
+    )
+
+
+def has_access(booking: Booking, sess):
+    if sess is None:
+        return true
+    return (
+        db.t.users.count_where(
+            "name = ? and car_id = ?", [sess["auth"], booking.car_id]
+        )
+        > 0
+    )
+
+
 @app.get("/bookings/add")
 def add_booking_form(sess):
     user_name = sess["auth"]
+    user, *_ = db.t.users.rows_where("name = ?", [user_name])
     return booking_form(
         Booking(
             id=None,
@@ -36,6 +65,7 @@ def add_booking_form(sess):
             user=user_name,
             note=None,
             distance=None,
+            car_id=user["car_id"],
         ),
         "Add booking",
         "/bookings/add",
@@ -55,13 +85,15 @@ def booking_expense(booking: Booking) -> Expense:
         cost=get_ride_cost(booking.distance),
         currency=CURRENCY,
         type=ExpenseType.individual,
+        car_id=booking.car_id,
     )
 
 
 @app.post("/bookings/add")
-def add_new_booking(booking: Booking):
-    print(booking)
+def add_new_booking(booking: Booking, sess=None):
     booking.id = None
+    if not has_access(booking, sess):
+        return RedirectResponse("/bookings")
     is_valid, msg = validate_booking(booking)
     if not is_valid:
         return msg
@@ -73,12 +105,18 @@ def add_new_booking(booking: Booking):
 
 
 @app.get("/bookings/edit/{id}")
-def edit_existing_booking(id: int):
-    return (booking_form(bookings[id], "Edit booking", "/bookings/edit"),)
+def edit_existing_booking(id: int, sess=None):
+    booking = bookings[id]
+    if not has_access(booking, sess):
+        return RedirectResponse("/bookings")
+
+    return (booking_form(booking, "Edit booking", "/bookings/edit"),)
 
 
 @app.post("/bookings/edit")
-def edit_booking(booking: Booking):
+def edit_booking(booking: Booking, sess=None):
+    if not has_access(booking, sess):
+        return RedirectResponse("/bookings")
     is_valid, msg = validate_booking(booking)
     if not is_valid:
         return booking_form(booking, "Edit booking", "/bookings/edit")
@@ -90,15 +128,20 @@ def edit_booking(booking: Booking):
 
 
 @app.post("/bookings/validate")
-def validate(booking: Booking):
+def validate(booking: Booking, sess=None):
+    if not has_access(booking, sess):
+        return RedirectResponse("/bookings")
     is_valid, msg = validate_booking(booking)
     if not is_valid:
         return msg
 
 
 @app.delete("/bookings/{id}")
-def delete_booking(id: int):
+def delete_booking(id: int, sess=None):
     booking = bookings[id]
+    if not has_access(booking, sess):
+        return Response(status_code=401)
+
     expenses.delete_where(where="id == ?", where_args=[booking.expense_id])
     bookings.delete(id)
     return Response(headers={"HX-Location": "/bookings"})
@@ -157,6 +200,12 @@ def booking_form(booking: Booking, title, post_target):
                 type="text",
                 name="id",
                 value=booking.id,
+                style="display:none",
+            ),
+            Input(
+                type="number",
+                name="car_id",
+                value=booking.car_id,
                 style="display:none",
             ),
             Input(
@@ -222,7 +271,7 @@ def get_cost_description(distance: int | None):
 
 
 @app.get("/bookings")
-def bookings_page():
+def bookings_page(sess):
 
     def calendar_url():
         return f"{BASE_URL}{calendar_path}"
@@ -266,7 +315,7 @@ def bookings_page():
                     cls="grid",
                     style="align-items: center;",
                 )
-                for b in bookings(order_by="date_from")
+                for b in get_bookings(sess)
             ],
         ),
     )

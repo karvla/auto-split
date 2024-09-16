@@ -26,9 +26,9 @@ def debts_page():
     transaction = Transaction(
         from_user=debtor.name,
         to_user=creditor.name,
-        amount=debt,
+        amount=0,
     )
-    return Page("Debts", debts_form(transaction, debt > 0), transaction_list())
+    return Page("Debts", debts_form(transaction, True), transaction_list())
 
 
 def transaction_list():
@@ -100,6 +100,7 @@ def debts_form(transaction: Transaction, is_valid):
                     *[
                         Option(
                             u.name,
+                            valud=u.name,
                             selected=u.name == transaction.from_user,
                         )
                         for u in users()
@@ -135,6 +136,7 @@ def debts_form(transaction: Transaction, is_valid):
                     *[
                         Option(
                             u.name,
+                            valud=u.name,
                             selected=u.name == transaction.to_user,
                         )
                         for u in users()
@@ -168,7 +170,7 @@ def current_debt():
     currency = CURRENCY
     return Div(
         *[
-            Small(f"{a.name} owes {b.name} {round(d)} {currency}")
+            (Small(f"{a.name} owes {b.name} {round(d)} {currency}"), Br())
             for a, b, d in all_debts()
             if d > 0
         ]
@@ -179,44 +181,78 @@ def total_debt(debtor: User, creditor):
     return round(max(0, debt(debtor, creditor) - debt(creditor, debtor)))
 
 
+def connected_users(user: str):
+    return list(
+        map(
+            lambda x: next(iter(x.values())),
+            db.query(
+                """
+            select name
+            from users
+            where car_id = (
+                select car_id
+                from users
+                where name = ?
+                limit 1
+            )
+            """,
+                [user],
+            ),
+        )
+    )
+
+
 def debt(debtor: User, creditor: User):
     current_date = datetime.now().date().isoformat()
+    all_users = connected_users(debtor.name)
     from_shared_expenses = next(
         db.query(
             f"""
-        select sum(cost) / (select count(name) from {users})
-        from {expenses}
-        where user == ?
-        and type == '{ExpenseType.shared}'
-        and date <= ?
+        SELECT
+            SUM(cost) / {len(all_users)}
+        FROM expenses
+        WHERE expenses.user = ?
+            AND expenses.type = ?
+            AND expenses.date <= ?
         """,
-            [creditor.name, current_date],
-        )
+            [
+                creditor.name,
+                ExpenseType.shared,
+                current_date,
+            ],
+        ),
+        None,  # Default value if nothing is found
     )
 
     from_individual_expenses = next(
         db.query(
             f"""
-        select sum(cost)
-        from {expenses}
-        where user == ?
-        and type == '{ExpenseType.individual}'
-        and date <= ?
-        """,
-            [debtor.name, current_date],
-        )
+        SELECT SUM(cost) / {len(all_users) - 1}
+        FROM expenses
+        WHERE expenses.user = ?
+            AND expenses.type = ?
+            AND expenses.date <= ?
+            """,
+            [
+                debtor.name,
+                ExpenseType.individual,
+                current_date,
+            ],
+        ),
+        None,  # Default value if no results are returned
     )
 
     from_transactions = next(
         db.query(
-            f"""
-        select sum(amount)
-        from {transactions}
-        where from_user == ?
-        and to_user == ?
-        """,
+            """
+        SELECT SUM(amount)
+        FROM transactions
+        WHERE from_user = ?
+            AND to_user = ?
+            """,
             [debtor.name, creditor.name],
-        )
+        ),
+        None,  # Default value if no results are returned
     )
 
     from_shared_expenses = next(iter(from_shared_expenses.values()))

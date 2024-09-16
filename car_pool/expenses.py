@@ -1,3 +1,4 @@
+from dataclasses import fields
 from datetime import datetime
 
 from app import app
@@ -15,8 +16,35 @@ users = db.t.users
 User = users.dataclass()
 
 
+def get_expenses(sess):
+    return map(
+        lambda b: Expense(**b),
+        db.query(
+            f"""
+    select expenses.{',expenses.'.join(map(lambda f: f.name, fields(Expense)))}
+    from expenses
+    left join users
+    on users.car_id = expenses.car_id
+    where users.name = ?
+                        """,
+            [sess["auth"]],
+        ),
+    )
+
+
+def has_access(expense: Expense, sess):
+    if sess is None:
+        return True
+    return (
+        db.t.users.count_where(
+            "name = ? and car_id = ?", [sess["auth"], expense.car_id]
+        )
+        > 0
+    )
+
+
 @app.get("/expenses")
-def get_expenses_page():
+def get_expenses_page(sess):
     return Page(
         "Expenses",
         Div(
@@ -51,24 +79,26 @@ def get_expenses_page():
                     cls="grid",
                     style="align-items: center;",
                 )
-                for e in expenses()
+                for e in get_expenses(sess)
             ],
         ),
     )
 
 
 @app.get("/expenses/add")
-def add_expenses_page(sess, error_msg=""):
-    user = sess["auth"]
+def add_expenses_page(sess=None, error_msg=""):
+    user_name = sess["auth"]
+    user_car, *_ = db.t.users.rows_where("name = ?", [user_name])
     return expense_form(
         Expense(
             id=None,
             title=None,
             note=None,
             date=datetime.now().date(),
-            user=user,
+            user=user_name,
             type=ExpenseType.individual,
             cost=0,
+            car_id=user_car["car_id"],
         ),
         "/expenses/add",
         "Add expense",
@@ -76,14 +106,19 @@ def add_expenses_page(sess, error_msg=""):
 
 
 @app.get("/expenses/edit/{id}")
-def edit_expense_form(id: int):
-    return expense_form(expenses[id], "/expenses/edit", "Edit expense")
+def edit_expense_form(id: int, sess=None):
+    expense = expenses[id]
+    if not has_access(expense, sess):
+        return RedirectResponse("/expenses", status_code=401)
+    return expense_form(expense, "/expenses/edit", "Edit expense")
 
 
 @app.post("/expenses/add")
-def add_new_expense(expense: Expense):
-    is_valid, msg = validate_expense(expense)
+def add_new_expense(expense: Expense, sess=None):
     expense.id = None
+    if not has_access(expense, sess):
+        return RedirectResponse("/expenses", status_code=401)
+    is_valid, msg = validate_expense(expense)
     if not is_valid:
         return msg
     expenses.insert(expense)
@@ -91,7 +126,9 @@ def add_new_expense(expense: Expense):
 
 
 @app.post("/expenses/edit")
-def edit_expense(expense: Expense, id: int):
+def edit_expense(expense: Expense, id: int, sess=None):
+    if not has_access(expense, sess):
+        return RedirectResponse("/expenses", status_code=401)
     is_valid, msg = validate_expense(expense)
     if not is_valid:
         return expense_form(expense, "/expenses/edit", "Edit expense")
@@ -100,18 +137,23 @@ def edit_expense(expense: Expense, id: int):
 
 
 @app.delete("/expenses/{id}")
-def delete_expense(id: int):
+def delete_expense(id: int, sess=None):
+    if not has_access(expenses[id], sess):
+        return Response("/expenses", status_code=401)
     expenses.delete(id)
 
 
 @app.post("/expenses/validate")
-def validate_expense(expense: Expense) -> (bool, str | None):
+def validate_expense(expense: Expense, sess=None) -> (bool, str | None):
+    if not has_access(expense, sess):
+        return RedirectResponse("/expenses", status_code=401)
     if expense.cost is None or expense.cost <= 0.0:
         return False, "Please enter an amount"
     return True, None
 
 
 def expense_form(expense: Expense, post_target, title):
+    print(expense)
 
     return (
         Page(
@@ -174,6 +216,12 @@ def expense_form(expense: Expense, post_target, title):
                     ),
                 ),
                 Input(type="text", name="id", value=expense.id, style="display:none"),
+                Input(
+                    type="number",
+                    name="car_id",
+                    value=expense.car_id,
+                    style="display:none",
+                ),
                 Div(id="indicator"),
                 Button("Save"),
                 hx_post=post_target,
