@@ -78,7 +78,7 @@ def test_total_debt(db):
     )
     add_new_expense(new_expense)
 
-    assert total_debt(user1, user2) == round((200 / 3 + 100))
+    assert total_debt(user1, user2) == round((200 / 3 + 100 / (len(db.t.users()) - 1)))
     assert total_debt(user3, user2) == round(200 / 3)
     assert total_debt(user2, user1) == 0
     assert total_debt(user2, user3) == 0

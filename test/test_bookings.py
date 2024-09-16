@@ -43,6 +43,7 @@ def test_edit_booking(db):
         user="user1",
         note="Test booking",
         distance=100,
+        car_id=1,
     )
 
     add_new_booking(new_booking)
