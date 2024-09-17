@@ -9,7 +9,9 @@ def before(req, sess):
 
 
 calendar_path = f"/{CALENDAR_SECRET}.ics"
-beforeware = Beforeware(before, skip=["/login", calendar_path])
+beforeware = Beforeware(
+    before, skip=["/login", "/signup", "/signup/validate", calendar_path]
+)
 use_live_reload = DEBUG is not None
 app, _ = fast_app(
     live=use_live_reload,
