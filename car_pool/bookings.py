@@ -43,7 +43,7 @@ def get_bookings(sess):
 
 def has_access(booking: Booking, sess):
     if sess is None:
-        return true
+        return True
     return (
         db.t.users.count_where(
             "name = ? and car_id = ?", [sess["auth"], booking.car_id]
