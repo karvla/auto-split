@@ -33,7 +33,10 @@ def debts_page(sess):
     )
     users = connected_users(sess["auth"])
     return Page(
-        "Debts", debts_form(transaction, users, debt > 0), transaction_list(user)
+        "Debts",
+        debts_form(transaction, users, debt > 0),
+        transaction_list(user),
+        users_list(user),
     )
 
 
@@ -284,3 +287,44 @@ def has_access(transaction: Transaction, sess):
         return True
     users = connected_users(sess["auth"])
     return transaction.from_user in users and transaction.to_user in users
+
+
+@app.delete("/users/{user_name}")
+def delete_user(user_name: str, sess=None):
+    print(user_name)
+    if not can_delete_user(user_name, sess):
+        return Response(status_code=401)
+    user = users.get(user_name)
+    print(user)
+    user.car_id = None
+    users.upsert(user)
+    if user_name == sess["auth"]:
+        return RedirectResponse("/logout", status_code=302)
+
+
+def can_delete_user(user: str, sess=None):
+    if sess is None:
+        return True
+    return user in connected_users(sess["auth"])
+
+
+def users_list(user: str):
+    all_users = connected_users(user)
+    return Details(
+        Summary(Strong("Users")),
+        *[
+            Article(
+                u,
+                Button(
+                    Icon(svgs.trash_can.regular),
+                    hx_delete=f"/users/{u}",
+                    hx_target="closest article",
+                    hx_swap="outerHTML",
+                    hx_confirm=f"Are you sure you want to remove {u} from this group?",
+                    cls="secondary",
+                ),
+                style="display: flex; justify-content: space-between; align-items: center",
+            )
+            for u in all_users
+        ],
+    )
