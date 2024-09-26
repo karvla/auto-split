@@ -11,15 +11,15 @@ def Page(title: str, *c, **kwargs):
         ("Expenses", "/expenses"),
         ("Debts", "/debts"),
     ]
-    title = (f"🚗 {title}",)
     nav_links = [
         Li(A(t, href=l, cls="contrast" + " outline" if t == title else ""))
         for t, l in pages
     ]
+    title = f"🚗 {title} "
     return (
         Title(title),
         Main(
-            Nav(Ul(Li(H3(title))), Ul(*nav_links)),
+            Nav(Ul(Li(H3("🚗"))), Ul(*nav_links)),
             *c,
             **kwargs,
             cls="container",
