@@ -1,5 +1,6 @@
 import bookings
 import bookings_calendar
+import config_page
 import debts
 import expenses
 import login
