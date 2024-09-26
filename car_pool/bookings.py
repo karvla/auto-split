@@ -110,7 +110,7 @@ def validate_booking(booking: Booking) -> (bool, str | None):
     if not date_from or not date_to:
         return False, "Please add a valid booking duration"
 
-    if date_from >= date_to:
+    if date_from > date_to:
         return False, "Start time should be before end time"
 
     other_bookings = (
