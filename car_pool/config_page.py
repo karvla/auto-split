@@ -1,16 +1,31 @@
+from dataclasses import fields
+
 from app import app
 from components import Page
 from db.init_db import load_database
-from fasthtml.components import *
+from fasthtml.common import *
 
 db = load_database()
 cars = db.t.cars
 Car = cars.dataclass()
+users = db.t.users
+User = users.dataclass()
 
 
 @app.get("/config/edit")
-def edit_config_form(sess):
-    car, *_ = cars()  # Assuming the initial car has id 1
+def edit_config_form(sess=None):
+    car, *_ = db.query(
+        f"""
+                    select cars.{',cars.'.join(map(lambda f: f.name, fields(Car)))}
+                    from cars
+                    join users
+                    on cars.id = users.car_id
+                    where users.name = ?
+                    limit 1
+                   """,
+        [sess["auth"]],
+    )
+    car = Car(**car)
     return config_form(
         car,
         "Edit Configuration",
@@ -18,8 +33,16 @@ def edit_config_form(sess):
     )
 
 
+def has_access(car: Car, sess=None):
+    if sess is None:
+        True
+    return users.get(sess["auth"]).car_id == car.id
+
+
 @app.post("/config/edit")
 def edit_config(car: Car, sess=None):
+    if not has_access(car, sess):
+        return Response(status_code=401)
     cars.update(car)
     return Response(headers={"HX-Location": "/config/edit"})
 
