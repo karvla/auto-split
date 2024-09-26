@@ -1,5 +1,15 @@
 from auth import hash_password
-from config import ADMIN_PASSWORD, ADMIN_USERNAME, CALENDAR_SECRET, USERS
+from config import (
+    ADMIN_PASSWORD,
+    ADMIN_USERNAME,
+    CALENDAR_SECRET,
+    COST_PER_DISTANCE,
+    CURRENCY,
+    DISTANCE_UNIT,
+    FUEL_EFFICIENCY,
+    USERS,
+    VOLUME_UNIT,
+)
 from db.expense_type import ExpenseType
 
 
@@ -91,6 +101,29 @@ def add_cars_table(db):
     db.t.expenses.add_foreign_key("car_id", "cars", "id")
 
 
+def move_config_to_cars_table(db):
+    cars = db.t.cars
+    cars.add_column("car_secret", col_type=str)
+    cars.add_column("currency", col_type=str)
+    cars.add_column("distance_unit", col_type=str)
+    cars.add_column("volume_unit", col_type=str)
+    cars.add_column("fuel_efficiency", col_type=float)
+    cars.add_column("cost_per_distance", col_type=float)
+
+    # Update the initial car with the relevant attributes from config
+    cars.upsert(
+        {
+            "id": 1,
+            "car_secret": CALENDAR_SECRET,
+            "currency": CURRENCY,
+            "distance_unit": DISTANCE_UNIT,
+            "volume_unit": VOLUME_UNIT,
+            "fuel_efficiency": FUEL_EFFICIENCY,
+            "cost_per_distance": COST_PER_DISTANCE,
+        },
+    )
+
+
 migrations = [
     init_migration,
     add_expense_type,
@@ -98,4 +131,5 @@ migrations = [
     add_transaction_table,
     add_user_password,
     add_cars_table,
+    move_config_to_cars_table,
 ]
