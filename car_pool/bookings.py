@@ -3,6 +3,7 @@ from datetime import datetime
 
 import costs
 from app import app, calendar_path
+from common import connected_users
 from components import Icon, Page
 from config import (
     BASE_URL,
@@ -69,6 +70,7 @@ def add_booking_form(sess):
         ),
         "Add booking",
         "/bookings/add",
+        sess,
     )
 
 
@@ -110,7 +112,7 @@ def edit_existing_booking(id: int, sess=None):
     if not has_access(booking, sess):
         return RedirectResponse("/bookings")
 
-    return (booking_form(booking, "Edit booking", "/bookings/edit"),)
+    return booking_form(booking, "Edit booking", "/bookings/edit", sess)
 
 
 @app.post("/bookings/edit")
@@ -119,7 +121,7 @@ def edit_booking(booking: Booking, sess=None):
         return RedirectResponse("/bookings")
     is_valid, msg = validate_booking(booking)
     if not is_valid:
-        return booking_form(booking, "Edit booking", "/bookings/edit")
+        return booking_form(booking, "Edit booking", "/bookings/edit", sess)
     bookings.update(booking)
     updated_expense = booking_expense(booking)
     updated_expense.id = booking.expense_id
@@ -174,7 +176,7 @@ def validate_booking(booking: Booking) -> (bool, str | None):
     return True, None
 
 
-def booking_form(booking: Booking, title, post_target):
+def booking_form(booking: Booking, title, post_target, sess=None):
     return Page(
         title,
         Form(
@@ -191,8 +193,8 @@ def booking_form(booking: Booking, title, post_target):
             ),
             Select(
                 *[
-                    Option(u.name, value=u.name, selected=booking.user == u.name)
-                    for u in users()
+                    Option(u, value=u, selected=booking.user == u)
+                    for u in connected_users(sess["auth"])
                 ],
                 name="user",
             ),

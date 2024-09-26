@@ -3,6 +3,7 @@ from itertools import permutations
 from operator import itemgetter
 
 from app import app
+from common import connected_users
 from components import Icon, Page
 from config import CURRENCY
 from db.expense_type import ExpenseType
@@ -194,27 +195,6 @@ def current_debt(user: str):
 
 def total_debt(debtor: str, creditor: str):
     return round(max(0, debt(debtor, creditor) - debt(creditor, debtor)))
-
-
-def connected_users(user: str):
-    return list(
-        map(
-            lambda x: next(iter(x.values())),
-            db.query(
-                """
-            select name
-            from users
-            where car_id = (
-                select car_id
-                from users
-                where name = ?
-                limit 1
-            )
-            """,
-                [user],
-            ),
-        )
-    )
 
 
 def debt(debtor: str, creditor: str):
