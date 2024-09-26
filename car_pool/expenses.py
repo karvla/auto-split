@@ -2,6 +2,7 @@ from dataclasses import fields
 from datetime import datetime
 
 from app import app
+from common import connected_users
 from components import Icon, Page
 from config import CURRENCY
 from db.expense_type import ExpenseType
@@ -86,7 +87,7 @@ def get_expenses_page(sess):
 
 
 @app.get("/expenses/add")
-def add_expenses_page(sess=None, error_msg=""):
+def add_expenses_page(sess, error_msg=""):
     user_name = sess["auth"]
     user_car, *_ = db.t.users.rows_where("name = ?", [user_name])
     return expense_form(
@@ -102,6 +103,7 @@ def add_expenses_page(sess=None, error_msg=""):
         ),
         "/expenses/add",
         "Add expense",
+        connected_users(sess["auth"]),
     )
 
 
@@ -152,7 +154,7 @@ def validate_expense(expense: Expense, sess=None) -> (bool, str | None):
     return True, None
 
 
-def expense_form(expense: Expense, post_target, title):
+def expense_form(expense: Expense, post_target, title, user_names):
     print(expense)
 
     return (
@@ -183,10 +185,8 @@ def expense_form(expense: Expense, post_target, title):
                     Label("Payed by", _for="by"),
                     Select(
                         *[
-                            Option(
-                                u.name, value=u.name, selected=expense.user == u.name
-                            )
-                            for u in users()
+                            Option(u, value=u, selected=expense.user == u)
+                            for u in user_names
                         ],
                         name="user",
                     ),
