@@ -1,8 +1,7 @@
-from dataclasses import fields
 from datetime import datetime
 
 from app import app
-from common import connected_users
+from common import connected_users, db_fields
 from components import Icon, Page
 from config import CURRENCY
 from db.expense_type import ExpenseType
@@ -22,7 +21,7 @@ def get_expenses(sess):
         lambda b: Expense(**b),
         db.query(
             f"""
-    select expenses.{',expenses.'.join(map(lambda f: f.name, fields(Expense)))}
+    select {db_fields(Expense, 'expenses')}
     from expenses
     left join users
     on users.car_id = expenses.car_id
