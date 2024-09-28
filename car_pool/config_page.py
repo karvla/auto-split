@@ -1,7 +1,7 @@
-from dataclasses import fields
 from uuid import uuid4
 
 from app import app
+from common import db_fields
 from components import Page
 from db.init_db import load_database
 from fasthtml.common import *
@@ -17,12 +17,12 @@ User = users.dataclass()
 def edit_config_form(sess=None):
     car, *_ = db.query(
         f"""
-                    select cars.{',cars.'.join(map(lambda f: f.name, fields(Car)))}
-                    from cars
-                    join users
-                    on cars.id = users.car_id
-                    where users.name = ?
-                    limit 1
+        select {db_fields(Car, 'cars')}
+        from cars
+        join users
+        on cars.id = users.car_id
+        where users.name = ?
+        limit 1
                    """,
         [sess["auth"]],
     )

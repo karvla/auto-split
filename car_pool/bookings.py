@@ -1,19 +1,11 @@
-from dataclasses import fields
 from datetime import datetime
 
 import costs
 from app import app
 from bookings_calendar import calendar_secret
-from common import connected_users
+from common import connected_users, db_fields, get_car
 from components import Icon, Page
-from config import (
-    BASE_URL,
-    COST_PER_DISTANCE,
-    CURRENCY,
-    DISTANCE_UNIT,
-    FUEL_EFFICIENCY,
-    VOLUME_UNIT,
-)
+from config import BASE_URL
 from db.expense_type import ExpenseType
 from db.init_db import load_database
 from expenses import Expense, expenses
@@ -32,11 +24,11 @@ def get_bookings(sess):
         lambda b: Booking(**b),
         db.query(
             f"""
-    select bookings.{',bookings.'.join(map(lambda f: f.name, fields(Booking)))}
-    from bookings
-    left join users
-    on users.car_id = bookings.car_id
-    where users.name = ?
+            select {db_fields(Booking, 'bookings')}
+            from bookings
+            left join users
+            on users.car_id = bookings.car_id
+            where users.name = ?
                         """,
             [sess["auth"]],
         ),
@@ -75,9 +67,9 @@ def add_booking_form(sess):
     )
 
 
-def booking_expense(booking: Booking) -> Expense:
+def booking_expense(booking: Booking, sess=None) -> Expense:
     expense_note = "\n".join(
-        [p for p in get_cost_description(booking.distance) if type(p) is str]
+        [p for p in get_cost_description(booking.distance, sess) if type(p) is str]
     )
     return Expense(
         id=None,
@@ -86,7 +78,7 @@ def booking_expense(booking: Booking) -> Expense:
         note=expense_note,
         user=booking.user,
         cost=get_ride_cost(booking.distance),
-        currency=CURRENCY,
+        currency=get_car(sess["auth"]) if sess is not None else "",
         type=ExpenseType.individual,
         car_id=booking.car_id,
     )
@@ -101,7 +93,7 @@ def add_new_booking(booking: Booking, sess=None):
     if not is_valid:
         return msg
 
-    expense = expenses.insert(booking_expense(booking))
+    expense = expenses.insert(booking_expense(booking, sess))
     booking.expense_id = expense.id
     bookings.insert(booking)
     return Response(headers={"HX-Location": "/bookings"})
@@ -124,7 +116,7 @@ def edit_booking(booking: Booking, sess=None):
     if not is_valid:
         return msg
     bookings.update(booking)
-    updated_expense = booking_expense(booking)
+    updated_expense = booking_expense(booking, sess)
     updated_expense.id = booking.expense_id
     expenses.upsert(updated_expense)
     return Response(headers={"HX-Location": "/bookings"})
@@ -228,12 +220,12 @@ def booking_form(booking: Booking, title, post_target, sess=None):
                         hx_swap="inner_html",
                         hx_target="#cost",
                     ),
-                    Input(value=DISTANCE_UNIT, readonly=True),
+                    Input(value=get_car(sess["auth"]).currency, readonly=True),
                     style="display: flex",
                 ),
             ),
             Div(id="indicator"),
-            Small(get_cost_description(booking.distance), id="cost"),
+            Small(get_cost_description(booking.distance, sess), id="cost"),
             Button("Save"),
             hx_post=post_target,
             hx_target="#indicator",
@@ -242,31 +234,27 @@ def booking_form(booking: Booking, title, post_target, sess=None):
     )
 
 
-def get_ride_cost(distance: int):
+def get_ride_cost(distance: int, sess=None):
+    if sess is None:
+        return 0
     cost_per_volume = float(costs.get_gas_price())
-    volume_per_distance = FUEL_EFFICIENCY
-    fixed_cost_per_distance = COST_PER_DISTANCE
-    return distance * (cost_per_volume * volume_per_distance + fixed_cost_per_distance)
+    c = get_car(sess["auth"])
+    return distance * (cost_per_volume * c.fuel_efficiency + c.cost_per_distance)
 
 
 @app.post("/bookings/cost")
-def get_cost_description(distance: int | None):
-    if distance is None:
+def get_cost_description(distance: int | None, sess=None):
+    if distance is None or sess is None:
         return Br(), Br(), Br()
+    c = get_car(sess["auth"])
+    total = get_ride_cost(distance, sess)
     cost_per_volume = float(costs.get_gas_price())
-    volume_per_distance = FUEL_EFFICIENCY
-    fixed_cost_per_distance = COST_PER_DISTANCE
-    volume_unit = VOLUME_UNIT
-    distance_unit = DISTANCE_UNIT
-    currency = CURRENCY
-
-    total = get_ride_cost(distance)
     return (
         "This ride costs distance x (gas price x fuel efficiency + fixed cost)",
         Br(),
-        f"= {distance} {distance_unit} x ({round(cost_per_volume,2)} {currency}/{volume_unit} x {volume_per_distance} {volume_unit} / {distance_unit} + {fixed_cost_per_distance} {currency}/{distance_unit})",
+        f"= {distance} {c.distance_unit} x ({round(cost_per_volume,2)} {c.currency}/{c.volume_unit} x {c.fuel_efficiency} {c.volume_unit} / {c.distance_unit} + {c.cost_per_distance} {c.currency}/{c.distance_unit})",
         Br(),
-        f"= {round(total,1)} {currency}",
+        f"= {round(total,1)} {c.currency}",
         Br(),
     )
 
