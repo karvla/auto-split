@@ -24,6 +24,13 @@ Transaction = transactions.dataclass()
 @app.get("/debts")
 def debts_page(sess):
     user = sess["auth"]
+    users = connected_users(sess["auth"])
+    if len(users) < 2:
+        return Page(
+            "Debts",
+            "No debts since you are the only one in this group",
+        )
+
     (debtor, creditor, debt), *_ = sorted(
         all_debts(user), key=itemgetter(2), reverse=True
     )
@@ -32,7 +39,6 @@ def debts_page(sess):
         to_user=creditor,
         amount=debt,
     )
-    users = connected_users(sess["auth"])
     return Page(
         "Debts",
         debts_form(transaction, users, debt > 0),

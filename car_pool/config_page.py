@@ -1,4 +1,5 @@
 from dataclasses import fields
+from uuid import uuid4
 
 from app import app
 from components import Page
@@ -33,6 +34,24 @@ def edit_config_form(sess=None):
     )
 
 
+@app.get("/config/new")
+def new_config_page(sess=None):
+    return config_form(
+        Car(
+            id=None,
+            name=None,
+            car_secret=str(uuid4()),
+            currency="",
+            distance_unit="",
+            volume_unit="",
+            fuel_efficiency=1.0,
+            cost_per_distance=1.0,
+        ),
+        "Create car-group",
+        "/config/new",
+    )
+
+
 def has_access(car: Car, sess=None):
     if sess is None:
         True
@@ -44,6 +63,16 @@ def edit_config(car: Car, sess=None):
     if not has_access(car, sess):
         return Response(status_code=401)
     cars.update(car)
+    return Response(headers={"HX-Location": "/config/edit"})
+
+
+@app.post("/config/new")
+def new_config(car: Car, sess=None):
+    car.id = None
+    car = cars.insert(car)
+    user = db.t.users.get(sess["auth"])
+    user.car_id = car.id
+    db.t.users.update(user)
     return Response(headers={"HX-Location": "/config/edit"})
 
 
@@ -59,7 +88,13 @@ def config_form(car: Car, title, post_target):
             ),
             Div(
                 Label("Car Secret", _for="car_secret"),
-                Input(type="text", name="car_secret", value=car.car_secret),
+                Input(
+                    type="text", name="car_secret", value=car.car_secret, readonly=True
+                ),
+            ),
+            Div(
+                Label("Name", _for="name"),
+                Input(type="text", name="name", value=car.name),
             ),
             Div(
                 Label("Currency", _for="currency"),

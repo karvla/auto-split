@@ -121,5 +121,55 @@ def signup(newUser: UserForm, sess):
     return Response(headers={"HX-Location": "/"})
 
 
-def create_car_form():
-    return
+@dataclass
+class JoinForm:
+    car_secret: str
+
+
+def is_valid_secret(car_secret: str):
+    return db.t.cars.count_where("car_secret = ?", [car_secret]) > 0
+
+
+@app.post("/signup/join/validate")
+def validate_car_secret(car_secret: str):
+    return create_form(
+        car_secret, is_invalid="false" if is_valid_secret(car_secret) else "true"
+    )
+
+
+@app.get("/signup/join-or-create")
+def create_page(sess=None):
+    return Titled(
+        "you are not in any car-group",
+        create_form(""),
+        style="max-width: 300px;",
+    )
+
+
+def create_form(car_secret: str, is_invalid=None):
+    return Form(
+        A("Create new", href="/config/new", style="min-width: 300px", role="button"),
+        Br(),
+        Small("or join existing"),
+        Br(),
+        Fieldset(
+            Input(
+                value=car_secret,
+                placeholder="33ea2eef-681c-41a1-9289-5f1406b443e1",
+                name="car_secret",
+                hx_post="/signup/join/validate",
+                hx_target="closest form",
+                hx_swap="outerHtml",
+                hx_trigger="input changed",
+                aria_invalid=is_invalid,
+            ),
+            Button(
+                "Join",
+                href="/config/edit",
+                id="join",
+                disabled=is_invalid == "true" or is_invalid is None,
+            ),
+            role="group",
+        ),
+        style="text-align: center; gap: 10px; display: flex; flex-direction: column",
+    )

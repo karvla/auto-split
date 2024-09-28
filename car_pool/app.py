@@ -1,5 +1,8 @@
 from config import DEBUG
+from db.init_db import load_database
 from fasthtml.common import *
+
+db = load_database()
 
 
 def before(req, sess):
@@ -10,6 +13,11 @@ def before(req, sess):
     auth = req.scope["auth"] = sess.get("auth", None)
     if not auth:
         return RedirectResponse("/login", status_code=303)
+
+    if req.url.path == "/config/new":
+        return
+    if db.t.users.get(auth).car_id is None:
+        return RedirectResponse("/signup/join-or-create", status_code=303)
 
 
 beforeware = Beforeware(before)
