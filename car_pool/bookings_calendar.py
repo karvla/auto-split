@@ -14,9 +14,9 @@ Booking = bookings.dataclass()
 def calendar_secret(sess=None):
     if sess is None:
         return None
-    secret = db.query(
+    secret, *_ = db.query(
         """
-        select calendar_secret
+        select car_secret
         from cars
         where cars.id = (select car_id
                         from users
@@ -25,13 +25,13 @@ def calendar_secret(sess=None):
                  """,
         [sess["auth"]],
     )
-    return next(iter(secret))["calendar_secret"]
+    return secret["car_secret"]
 
 
 @app.get("/calendar/{calendar_path}")
 def ics_content(calendar_path: str):
-    calendar_secret, _ = calendar_path.split(".")
-    c = cars(where="calendar_secret = ?", where_args=[calendar_secret], limit=1)
+    car_secret, _ = calendar_path.split(".")
+    c = cars(where="car_secret = ?", where_args=[car_secret], limit=1)
     if len(c) == 0:
         return Response(status_code=404)
 
