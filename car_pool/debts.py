@@ -48,6 +48,8 @@ def debts_page(sess):
 
 
 def transaction_list(user: str):
+    users = connected_users(user)
+    question_marks = ",".join(("?" for _ in users))
     return Div(
         H4("Transactions"),
         current_debt(user),
@@ -55,8 +57,11 @@ def transaction_list(user: str):
             *[
                 transaction_card(t)
                 for t in transactions(
-                    where="from_user = :name or to_user = :name",
-                    where_args={"name": user},
+                    where=f"""
+                    to_user in ({question_marks})
+                    or from_user in ({question_marks})
+                    """,
+                    where_args=users + users,
                     order_by="date",
                 )
             ],
