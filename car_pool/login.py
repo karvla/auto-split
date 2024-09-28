@@ -137,6 +137,17 @@ def validate_car_secret(car_secret: str):
     )
 
 
+@app.post("/signup/join/")
+def join_car(car_secret: str, sess):
+    if not is_valid_secret(car_secret):
+        return Response(status_code=404)
+    car, *_ = db.t.cars(where="car_secret = ?", where_args=[car_secret])
+    user = db.t.users.get(sess["auth"])
+    user.car_id = car.id
+    db.t.users.update(user)
+    return Response(headers={"HX-Location": "/"})
+
+
 @app.get("/signup/join-or-create")
 def create_page(sess=None):
     return Titled(
@@ -165,7 +176,7 @@ def create_form(car_secret: str, is_invalid=None):
             ),
             Button(
                 "Join",
-                href="/config/edit",
+                hx_post="/signup/join",
                 id="join",
                 disabled=is_invalid == "true" or is_invalid is None,
             ),
