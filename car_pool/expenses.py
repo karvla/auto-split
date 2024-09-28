@@ -112,7 +112,9 @@ def edit_expense_form(id: int, sess=None):
     expense = expenses[id]
     if not has_access(expense, sess):
         return RedirectResponse("/expenses", status_code=401)
-    return expense_form(expense, "/expenses/edit", "Edit expense")
+    return expense_form(
+        expense, "/expenses/edit", "Edit expense", connected_users(sess["auth"])
+    )
 
 
 @app.post("/expenses/add")
@@ -133,7 +135,11 @@ def edit_expense(expense: Expense, id: int, sess=None):
         return RedirectResponse("/expenses", status_code=401)
     is_valid, msg = validate_expense(expense)
     if not is_valid:
-        return expense_form(expense, "/expenses/edit", "Edit expense")
+        return (
+            expense_form(
+                expense, "/expenses/edit", "Edit expense", connected_users(sess["auth"])
+            ),
+        )
     expenses.update(expense)
     return Response(headers={"HX-Location": "/expenses"})
 
@@ -155,8 +161,6 @@ def validate_expense(expense: Expense, sess=None) -> (bool, str | None):
 
 
 def expense_form(expense: Expense, post_target, title, user_names):
-    print(expense)
-
     return (
         Page(
             title,
