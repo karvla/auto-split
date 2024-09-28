@@ -88,8 +88,8 @@ def add_user_password(db):
 
 def add_cars_table(db):
     cars = db.t.cars
-    cars.create(id=int, name=str, calendar_secret=str, pk="id")
-    init_car = cars.insert({"name": "Initial car", "calendar_secret": CALENDAR_SECRET})
+    cars.create(id=int, name=str, car_secret=str, pk="id")
+    init_car = cars.insert({"name": "Initial car", "car_secret": CALENDAR_SECRET})
     db.t.users.add_column("car_id", int)
     db.t.users.add_foreign_key("car_id", "cars", "id")
     db.execute("UPDATE users SET car_id = ?", [init_car["id"]])
@@ -103,14 +103,12 @@ def add_cars_table(db):
 
 def move_config_to_cars_table(db):
     cars = db.t.cars
-    cars.add_column("car_secret", col_type=str)
     cars.add_column("currency", col_type=str)
     cars.add_column("distance_unit", col_type=str)
     cars.add_column("volume_unit", col_type=str)
     cars.add_column("fuel_efficiency", col_type=float)
     cars.add_column("cost_per_distance", col_type=float)
 
-    # Update the initial car with the relevant attributes from config
     cars.upsert(
         {
             "id": 1,
