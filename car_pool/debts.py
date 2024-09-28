@@ -46,7 +46,14 @@ def transaction_list(user: str):
         H4("Transactions"),
         current_debt(user),
         Div(
-            *[transaction_card(t) for t in transactions(order_by="date")],
+            *[
+                transaction_card(t)
+                for t in transactions(
+                    where="from_user = :name or to_user = :name",
+                    where_args={"name": user},
+                    order_by="date",
+                )
+            ],
         ),
         id="transactions-list",
     )

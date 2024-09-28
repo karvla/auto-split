@@ -2,7 +2,8 @@ from dataclasses import fields
 from datetime import datetime
 
 import costs
-from app import app, calendar_path
+from app import app
+from bookings_calendar import calendar_secret
 from common import connected_users
 from components import Icon, Page
 from config import (
@@ -276,7 +277,7 @@ def get_cost_description(distance: int | None):
 def bookings_page(sess):
 
     def calendar_url():
-        return f"{BASE_URL}{calendar_path}"
+        return f"{BASE_URL}/calendar/{calendar_secret(sess)}.ics"
 
     return Page(
         "Bookings",
