@@ -3,9 +3,8 @@ from itertools import permutations
 from operator import itemgetter
 
 from app import app
-from common import connected_users
+from common import connected_users, get_car
 from components import Icon, Page
-from config import CURRENCY
 from db.expense_type import ExpenseType
 from db.init_db import load_database
 from fa6_icons import svgs
@@ -41,7 +40,7 @@ def debts_page(sess):
     )
     return Page(
         "Debts",
-        debts_form(transaction, users, debt > 0),
+        debts_form(transaction, debt > 0, sess),
         transaction_list(user),
         users_list(user),
     )
@@ -122,11 +121,12 @@ def validate_form(transaction: Transaction, input: str, sess=None):
             total_debt(transaction.from_user, transaction.to_user)
         )
     valid = transaction.amount > 0
-    return debts_form(transaction, connected_users(sess["auth"]), valid)
+    return debts_form(transaction, valid, sess)
 
 
-def debts_form(transaction: Transaction, users: list[str], is_valid: bool):
-    currency = CURRENCY
+def debts_form(transaction: Transaction, is_valid: bool, sess):
+    currency = get_car(sess["auth"])
+    users = connected_users(sess["auth"])
     return Form(
         Div(
             Div(
@@ -201,7 +201,7 @@ def all_debts(user: str) -> [(str, str, float)]:
 
 
 def current_debt(user: str):
-    currency = CURRENCY
+    currency = get_car(user).currency
     return Div(
         *[
             (Small(f"{a} owes {b} {round(d)} {currency}"), Br())

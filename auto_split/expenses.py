@@ -1,9 +1,8 @@
 from datetime import datetime
 
 from app import app
-from common import connected_users, db_fields
+from common import connected_users, db_fields, get_car
 from components import Icon, Page
-from config import CURRENCY
 from db.expense_type import ExpenseType
 from db.init_db import load_database
 from fa6_icons import svgs
@@ -103,7 +102,7 @@ def add_expenses_page(sess, error_msg=""):
         ),
         "/expenses/add",
         "Add expense",
-        connected_users(sess["auth"]),
+        sess,
     )
 
 
@@ -112,9 +111,7 @@ def edit_expense_form(id: int, sess=None):
     expense = expenses[id]
     if not has_access(expense, sess):
         return RedirectResponse("/expenses", status_code=401)
-    return expense_form(
-        expense, "/expenses/edit", "Edit expense", connected_users(sess["auth"])
-    )
+    return expense_form(expense, "/expenses/edit", "Edit expense", sess)
 
 
 @app.post("/expenses/add")
@@ -135,11 +132,7 @@ def edit_expense(expense: Expense, id: int, sess=None):
         return RedirectResponse("/expenses", status_code=401)
     is_valid, msg = validate_expense(expense)
     if not is_valid:
-        return (
-            expense_form(
-                expense, "/expenses/edit", "Edit expense", connected_users(sess["auth"])
-            ),
-        )
+        return (expense_form(expense, "/expenses/edit", "Edit expense", sess),)
     expenses.update(expense)
     return Response(headers={"HX-Location": "/expenses"})
 
@@ -160,7 +153,8 @@ def validate_expense(expense: Expense, sess=None) -> (bool, str | None):
     return True, None
 
 
-def expense_form(expense: Expense, post_target, title, user_names):
+def expense_form(expense: Expense, post_target, title, sess):
+    currency = get_car(sess["auth"]).currency
     return (
         Page(
             title,
@@ -179,7 +173,7 @@ def expense_form(expense: Expense, post_target, title, user_names):
                         Input(type="number", name="cost", value=expense.cost),
                         Input(
                             name="currency",
-                            value=CURRENCY,
+                            value=currency,
                             aria_label="Read-only input",
                         ),
                         style="display: flex",
@@ -190,7 +184,7 @@ def expense_form(expense: Expense, post_target, title, user_names):
                     Select(
                         *[
                             Option(u, value=u, selected=expense.user == u)
-                            for u in user_names
+                            for u in connected_users(sess["auth"])
                         ],
                         name="user",
                     ),
