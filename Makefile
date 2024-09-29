@@ -7,7 +7,7 @@ install:
 	poetry install
 
 run:
-	poetry run python3 car_pool/main.py
+	poetry run python3 auto_split/main.py
 
 format:
 	isort $(SRC_DIR)

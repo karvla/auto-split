@@ -1,5 +1,5 @@
 [flake8]
-exclude = car_pool/main.py, test/*
+exclude = auto_split/main.py, test/*
 
 extend-ignore =
 	F405,

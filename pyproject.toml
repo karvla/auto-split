@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "car-pool"
+name = "auto-split"
 version = "0.1.0"
 description = ""
 authors = ["Arvid Larsson <arvid94@gmail.com>"]
@@ -27,7 +27,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-pythonpath = ["car_pool"]
+pythonpath = ["auto_split"]
 
 [tool.isort]
 profile = "black"

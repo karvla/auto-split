@@ -1,8 +1,6 @@
 from datetime import datetime
 
-from test_db import db
-
-from car_pool.debts import (
+from debts import (
     Transaction,
     User,
     add_transaction,
@@ -11,7 +9,8 @@ from car_pool.debts import (
     total_debt,
     validate_form,
 )
-from car_pool.expenses import Expense, add_new_expense
+from expenses import Expense, add_new_expense
+from test_db import db
 
 
 def test_add_individual_expense(db):

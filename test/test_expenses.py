@@ -1,14 +1,13 @@
 from datetime import datetime
 
-from test_db import db
-
-from car_pool.expenses import (
+from expenses import (
     Expense,
     add_new_expense,
     delete_expense,
     edit_expense,
     validate_expense,
 )
+from test_db import db
 
 
 def test_users_table(db):
