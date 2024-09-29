@@ -88,17 +88,28 @@ def add_user_password(db):
 
 def add_cars_table(db):
     cars = db.t.cars
+    db.t.bookings.transform(drop={"car_id"})
+    db.t.expenses.transform(drop={"car_id"})
+    db.t.users.transform(drop={"car_id"})
+
+    if cars.exists():
+        cars.drop()
     cars.create(id=int, name=str, car_secret=str, pk="id")
+
     init_car = cars.insert({"name": "Initial car", "car_secret": CALENDAR_SECRET})
-    db.t.users.add_column("car_id", int)
-    db.t.users.add_foreign_key("car_id", "cars", "id")
+
+    db.t.users.add_column("car_id", col_type=int)
+    db.t.bookings.add_column("car_id", col_type=int)
+    db.t.expenses.add_column("car_id", col_type=int)
+
     db.execute("UPDATE users SET car_id = ?", [init_car["id"]])
-
-    db.t.bookings.add_column("car_id", col_type=int, not_null_default=init_car["id"])
+    db.execute("UPDATE bookings SET car_id = ?", [init_car["id"]])
+    db.execute("UPDATE expenses SET car_id = ?", [init_car["id"]])
+    db.execute("COMMIT;")
+    db.t.users.add_foreign_key("car_id", "cars", "id")
     db.t.bookings.add_foreign_key("car_id", "cars", "id")
-
-    db.t.expenses.add_column("car_id", col_type=int, not_null_default=init_car["id"])
     db.t.expenses.add_foreign_key("car_id", "cars", "id")
+
 
 
 def move_config_to_cars_table(db):
