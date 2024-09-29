@@ -26,6 +26,7 @@ def get_expenses(sess):
     left join users
     on users.car_id = expenses.car_id
     where users.name = ?
+    order by date desc
                         """,
             [sess["auth"]],
         ),

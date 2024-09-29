@@ -29,6 +29,7 @@ def get_bookings(sess):
             left join users
             on users.car_id = bookings.car_id
             where users.name = ?
+            order by date_from desc
                         """,
             [sess["auth"]],
         ),

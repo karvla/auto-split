@@ -111,7 +111,6 @@ def add_cars_table(db):
     db.t.expenses.add_foreign_key("car_id", "cars", "id")
 
 
-
 def move_config_to_cars_table(db):
     cars = db.t.cars
     cars.add_column("currency", col_type=str)

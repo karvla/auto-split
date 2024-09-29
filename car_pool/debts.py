@@ -62,7 +62,7 @@ def transaction_list(user: str):
                     or from_user in ({question_marks})
                     """,
                     where_args=users + users,
-                    order_by="date",
+                    order_by="date desc",
                 )
             ],
         ),
