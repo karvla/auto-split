@@ -109,8 +109,8 @@ def test_delete_transaction(db):
 
     new_transaction = Transaction(
         id=None,
-        from_user="user1",
-        to_user="user2",
+        from_user=user1.name,
+        to_user=user2.name,
         amount=50,
         currency="USD",
         date=datetime.now().date().isoformat(),

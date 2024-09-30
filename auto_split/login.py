@@ -38,10 +38,11 @@ def login_page():
 @app.post("/login")
 def login(credentials: Credentials, sess):
     users = load_database().t.users
-    user = users.get(credentials.name)
-    if user is None:
+    users = users(where="name = ?", where_args=[credentials.name])
+    if len(users) == 0:
         return RedirectResponse("/login", status_code=303)
 
+    user, *_ = users
     if not verify_password(user.password_salt, credentials.password):
         return RedirectResponse("/login", status_code=303)
 

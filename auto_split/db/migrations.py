@@ -1,15 +1,3 @@
-from auth import hash_password
-from config import (
-    ADMIN_PASSWORD,
-    ADMIN_USERNAME,
-    CALENDAR_SECRET,
-    COST_PER_DISTANCE,
-    CURRENCY,
-    DISTANCE_UNIT,
-    FUEL_EFFICIENCY,
-    USERS,
-    VOLUME_UNIT,
-)
 from db.expense_type import ExpenseType
 
 
@@ -17,8 +5,6 @@ def init_migration(db):
     users = db.t.users
     if users not in db.t:
         users.create(name=str, pk="name")
-        for user in USERS:
-            users.insert(name=user)
 
     expenses = db.t.expenses
     if expenses not in db.t:
@@ -75,37 +61,17 @@ def add_transaction_table(db):
 
 def add_user_password(db):
     users = db.t.users
-    users.insert({"name": ADMIN_USERNAME})
     users.add_column("password_salt", col_type="str")
-
-    # All users are given the admin password
-    # since they have all used this to sign in at
-    # this point
-    for user in users.rows:
-        user["password_salt"] = hash_password(ADMIN_PASSWORD)
-        users.upsert(user)
 
 
 def add_cars_table(db):
     cars = db.t.cars
-    db.t.bookings.transform(drop={"car_id"})
-    db.t.expenses.transform(drop={"car_id"})
-    db.t.users.transform(drop={"car_id"})
-
-    if cars.exists():
-        cars.drop()
     cars.create(id=int, name=str, car_secret=str, pk="id")
-
-    init_car = cars.insert({"name": "Initial car", "car_secret": CALENDAR_SECRET})
 
     db.t.users.add_column("car_id", col_type=int)
     db.t.bookings.add_column("car_id", col_type=int)
     db.t.expenses.add_column("car_id", col_type=int)
 
-    db.execute("UPDATE users SET car_id = ?", [init_car["id"]])
-    db.execute("UPDATE bookings SET car_id = ?", [init_car["id"]])
-    db.execute("UPDATE expenses SET car_id = ?", [init_car["id"]])
-    db.execute("COMMIT;")
     db.t.users.add_foreign_key("car_id", "cars", "id")
     db.t.bookings.add_foreign_key("car_id", "cars", "id")
     db.t.expenses.add_foreign_key("car_id", "cars", "id")
@@ -118,18 +84,6 @@ def move_config_to_cars_table(db):
     cars.add_column("volume_unit", col_type=str)
     cars.add_column("fuel_efficiency", col_type=float)
     cars.add_column("cost_per_distance", col_type=float)
-
-    cars.upsert(
-        {
-            "id": 1,
-            "car_secret": CALENDAR_SECRET,
-            "currency": CURRENCY,
-            "distance_unit": DISTANCE_UNIT,
-            "volume_unit": VOLUME_UNIT,
-            "fuel_efficiency": FUEL_EFFICIENCY,
-            "cost_per_distance": COST_PER_DISTANCE,
-        },
-    )
 
 
 migrations = [
