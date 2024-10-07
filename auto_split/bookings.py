@@ -169,6 +169,7 @@ def validate_booking(booking: Booking) -> (bool, str | None):
 
 
 def booking_form(booking: Booking, title, post_target, sess=None):
+    car = get_car(sess["auth"])
     return Page(
         title,
         Form(
@@ -221,7 +222,7 @@ def booking_form(booking: Booking, title, post_target, sess=None):
                         hx_swap="inner_html",
                         hx_target="#cost",
                     ),
-                    Input(value=get_car(sess["auth"]).currency, readonly=True),
+                    Input(value=car.distance_unit, readonly=True),
                     style="display: flex",
                 ),
             ),
