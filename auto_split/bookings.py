@@ -78,8 +78,8 @@ def booking_expense(booking: Booking, sess=None) -> Expense:
         title=f"Ride cost: {booking.note}",
         note=expense_note,
         user=booking.user,
-        cost=get_ride_cost(booking.distance),
-        currency=get_car(sess["auth"]) if sess is not None else "",
+        cost=get_ride_cost(booking.distance, sess),
+        currency=get_car(sess["auth"]).currency if sess is not None else "",
         type=ExpenseType.individual,
         car_id=booking.car_id,
     )
