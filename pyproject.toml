@@ -1,36 +1,48 @@
-[tool.poetry]
+[project]
 name = "auto-split"
 version = "0.1.0"
 description = ""
-authors = ["Arvid Larsson <arvid94@gmail.com>"]
-license = "MIT"
+authors = [
+    {name = "Arvid Larsson", email = "arvid94@gmail.com"},
+]
+license = {text = "MIT"}
 readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "python-fasthtml==0.6.0",
+    "requests==2.25.1",
+    "fa6-icons==0.0.2",
+    "ics==0.7.2",
+    "fastapi==0.114.1",
+    "pytest==8.3.3",
+    "sqlite-minutils>=0.1",
+    "fast-html>=1.0.11",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-python-fasthtml = "0.6.0"
-requests = "2.25.1"
-fa6-icons = "^0.0.2"
-ics = "^0.7.2"
-fastapi = "^0.114.1"
-pytest = "^8.3.3"
-
-
-[tool.poetry.group.dev.dependencies]
-flake8 = "^7.1.1"
-black = "^24.8.0"
-isort = "^5.13.2"
-pytest-env = "^1.1.4"
+[project.optional-dependencies]
+dev = [
+    "pytest-env==1.1.4",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["auto_split*"]
+exclude = ["data*", "test*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["auto_split"]
 
 [tool.isort]
 profile = "black"
+
+[tool.ruff.lint]
+ignore = ["F405", "F811", "F403"]
+
+[tool.ruff.lint.per-file-ignores]
+"auto_split/main.py" = ["F401"]
 
 [tool.pytest_env]
 ADMIN_USERNAME = "username"

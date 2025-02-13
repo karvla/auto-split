@@ -17,7 +17,7 @@ User = users.dataclass()
 def edit_config_form(sess=None):
     car, *_ = db.query(
         f"""
-        select {db_fields(Car, 'cars')}
+        select {db_fields(Car, "cars")}
         from cars
         join users
         on cars.id = users.car_id
@@ -110,7 +110,12 @@ def config_form(car: Car, title, post_target):
             ),
             Div(
                 Label("Fuel Efficiency", _for="fuel_efficiency"),
-                Input(type="number", step="0.01", name="fuel_efficiency", value=car.fuel_efficiency),
+                Input(
+                    type="number",
+                    step="0.01",
+                    name="fuel_efficiency",
+                    value=car.fuel_efficiency,
+                ),
             ),
             Div(
                 Label("Cost per Distance", _for="cost_per_distance"),

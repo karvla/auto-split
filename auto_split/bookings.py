@@ -24,7 +24,7 @@ def get_bookings(sess):
         lambda b: Booking(**b),
         db.query(
             f"""
-            select {db_fields(Booking, 'bookings')}
+            select {db_fields(Booking, "bookings")}
             from bookings
             left join users
             on users.car_id = bookings.car_id
@@ -254,16 +254,15 @@ def get_cost_description(distance: int | None, sess=None):
     return (
         "This ride costs distance x (gas price x fuel efficiency + fixed cost)",
         Br(),
-        f"= {distance} {c.distance_unit} x ({round(cost_per_volume,2)} {c.currency}/{c.volume_unit} x {c.fuel_efficiency} {c.volume_unit} / {c.distance_unit} + {c.cost_per_distance} {c.currency}/{c.distance_unit})",
+        f"= {distance} {c.distance_unit} x ({round(cost_per_volume, 2)} {c.currency}/{c.volume_unit} x {c.fuel_efficiency} {c.volume_unit} / {c.distance_unit} + {c.cost_per_distance} {c.currency}/{c.distance_unit})",
         Br(),
-        f"= {round(total,1)} {c.currency}",
+        f"= {round(total, 1)} {c.currency}",
         Br(),
     )
 
 
 @app.get("/bookings")
 def bookings_page(sess):
-
     def calendar_url():
         return f"{BASE_URL}/calendar/{calendar_secret(sess)}.ics"
 

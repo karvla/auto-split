@@ -3,3 +3,6 @@
 __pycache__
 service_account.json
 data/
+*.egg-info/
+dist/
+build/
