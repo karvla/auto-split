@@ -126,8 +126,17 @@ def config_form(car: Car, title, post_target):
                     value=car.cost_per_distance,
                 ),
             ),
-            Button("Save"),
-            hx_post=post_target,
-            style="flex-direction: column",
+            Div(
+                Button(
+                    "Save",
+                    hx_post=post_target,
+                    style="flex-direction: column",
+                ),
+                A(
+                    "Export data",
+                    href="/download-data",
+                ),
+                style="display: inline-flex; gap: 1em",
+            ),
         ),
     )
