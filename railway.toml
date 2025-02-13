@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+buildCommand = "curl -LsSf https://astral.sh/uv/install.sh | sh"
+
+[deploy]
+startCommand = "make run"
+restartPolicyType = "never"
