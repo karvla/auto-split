@@ -1,25 +1,23 @@
 SRC_DIR := .
 
-.PHONY:  pre-commit test
+.PHONY: pre-commit test
 
 install:
-	pip install poetry
-	poetry install
+	uv sync
+	uv sync --extra dev
 
 run:
-	poetry run python3 auto_split/main.py
+	uv run python3 auto_split/main.py
 
 format:
-	isort $(SRC_DIR)
-	black $(SRC_DIR)
+	uv tool run ruff format
 
 lint:
-	flake8 $(SRC_DIR)
+	uv tool run ruff check ./auto_split
 
 test:
-	pytest $(SRC_DIR)
+	uv run pytest $(SRC_DIR)
 
 pre-commit: format lint test
 
 all: format lint test
-

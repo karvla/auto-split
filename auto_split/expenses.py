@@ -20,7 +20,7 @@ def get_expenses(sess):
         lambda b: Expense(**b),
         db.query(
             f"""
-    select {db_fields(Expense, 'expenses')}
+    select {db_fields(Expense, "expenses")}
     from expenses
     left join users
     on users.car_id = expenses.car_id

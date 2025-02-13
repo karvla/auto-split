@@ -37,7 +37,7 @@ def db_fields(db_dataclass, table_name):
 def get_car(user: str):
     car, *_ = db.query(
         f"""
-    select {db_fields(Car, 'cars')}
+    select {db_fields(Car, "cars")}
     from cars
     where id = (select car_id
             from  users

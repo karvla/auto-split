@@ -5,17 +5,23 @@ def Icon(svg):
     return Div(svg, style="width: 0.8em; display: inline-block")
 
 
-def Page(title: str, *c, **kwargs):
+def Page(current_title: str, *c, **kwargs):
     pages = [
         ("Bookings", "/bookings"),
         ("Expenses", "/expenses"),
         ("Debts", "/debts"),
     ]
     nav_links = [
-        Li(A(t, href=l, cls="contrast" + " outline" if t == title else ""))
-        for t, l in pages
+        Li(
+            A(
+                page_title,
+                href=link,
+                cls="contrast" + " outline" if page_title == page_title else "",
+            )
+        )
+        for page_title, link in pages
     ]
-    title = f"🚗 {title} "
+    title = f"🚗 {current_title} "
     return (
         Title(title),
         Main(
