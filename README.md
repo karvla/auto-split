@@ -4,5 +4,6 @@ Simple app for sharing a car
 * ✅ Make reservations and sync them to calendar
 * ✅ Keep track of expenses
 
-1. `make install`
+
+0. Install uv `curl -LsSf https://astral.sh/uv/install.sh | sh`
 2. `make run`
