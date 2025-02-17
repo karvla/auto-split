@@ -22,15 +22,16 @@ def download_data(sess):
     fd, path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
 
-    # Create new database and set up schema
+    # Initialize the database
     new_db = database(path)
     new_db.conn.execute("PRAGMA foreign_keys = ON;")
-    run_db_migrations(new_db)
 
     # Run migrations on the new database to set up schema
     run_db_migrations(new_db)
 
     # Copy user data
+    # First verify source data
+
     # First the car
     car_rows = list(db.t.cars.rows_where("id = ?", [car_id]))
     for row in car_rows:
@@ -70,10 +71,21 @@ def download_data(sess):
                 if not list(new_db.t.transactions.rows_where("id = ?", [row["id"]])):
                     new_db.t.transactions.insert(db.t.transactions.dataclass()(**row))
 
+    # Close the database connection before sending
+    new_db.conn.close()
+    del new_db
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Create a copy of the database for sending
+    temp_path = path + ".tmp"
+    import shutil
+
+    shutil.copy2(path, temp_path)
+
     return FileResponse(
-        path=path,
+        path=temp_path,
         filename=f"car_data_{car_id}_{timestamp}.db",
         media_type="application/octet-stream",
-        background=BackgroundTask(lambda: os.unlink(path)),
+        background=BackgroundTask(lambda: [os.unlink(p) for p in [path, temp_path]]),
     )
