@@ -1,4 +1,5 @@
 from fasthtml.common import *
+from fa6_icons import svgs
 
 
 def Icon(svg):
@@ -10,6 +11,7 @@ def Page(current_title: str, *c, **kwargs):
         ("Bookings", "/bookings"),
         ("Expenses", "/expenses"),
         ("Debts", "/debts"),
+        (Icon(svgs.gear.solid), "/config/edit"),
     ]
     nav_links = [
         Li(
