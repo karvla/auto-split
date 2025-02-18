@@ -196,10 +196,6 @@ def debts_form(transaction: Transaction, is_valid: bool, sess):
     )
 
 
-def all_debts(user: str) -> [(str, str, float)]:
-    return [(a, b, total_debt(a, b)) for a, b in permutations(connected_users(user), 2)]
-
-
 def current_debt(user: str):
     currency = get_car(user).currency
     return Div(
@@ -209,6 +205,10 @@ def current_debt(user: str):
             if d > 0
         ]
     )
+
+
+def all_debts(user: str) -> [(str, str, float)]:
+    return [(a, b, total_debt(a, b)) for a, b in permutations(connected_users(user), 2)]
 
 
 def total_debt(debtor: str, creditor: str):
@@ -240,7 +240,7 @@ def debt(debtor: str, creditor: str):
     from_individual_expenses = next(
         db.query(
             f"""
-        SELECT SUM(cost) / {len(all_users) - 1}
+        SELECT SUM(cost) / {len(all_users)}
         FROM expenses
         WHERE expenses.user = ?
             AND expenses.type = ?

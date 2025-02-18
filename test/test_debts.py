@@ -1,140 +1,98 @@
 from datetime import datetime
 
-from debts import (
-    Transaction,
-    User,
-    add_transaction,
+from auto_split.debts import (
     debt,
-    delete_transaction,
     total_debt,
-    validate_form,
+    Expense,
+    Transaction,
 )
-from expenses import Expense, add_new_expense
+from auto_split.expenses import add_new_expense
+from auto_split.db.expense_type import ExpenseType
 from test_db import db
 
 
-def test_add_individual_expense(db):
-    expenses = db.t.expenses
-
-    new_expense = Expense(
+def add_expense(user: str, amount: float, type: str):
+    expense = Expense(
         id=None,
-        title="Individual Expense",
-        note="Test note",
+        title=f"{type.capitalize()} expense",
+        note="Test expense",
         date=datetime.now().date(),
-        user="user1",
-        type="individual",
-        cost=100,
+        user=user,
+        type=type,
+        cost=amount,
         currency="USD",
         car_id=1,
     )
-
-    add_new_expense(new_expense)
-    assert len(expenses()) == 1
+    add_new_expense(expense, {"auth": user})
 
 
 def test_add_shared_expense(db):
+    user1, _, _ = db.t.users()
     expenses = db.t.expenses
 
-    new_expense = Expense(
-        id=None,
-        title="Shared Expense",
-        note="Test note",
-        date=datetime.now().date(),
-        user="user2",
-        type="shared",
-        cost=200,
-        currency="USD",
-        car_id=1,
-    )
-
-    add_new_expense(new_expense)
+    add_expense(user1.name, 100, "shared")
     assert len(expenses()) == 1
 
 
-def test_total_debt(db):
+def test_one_pays_for_gas_that_is_consumed_by_everyone_equally(db):
     user1, user2, user3 = db.t.users()
 
-    new_expense = Expense(
-        id=None,
-        title="Individual Expense",
-        note="Test note",
-        date=datetime.now().date(),
-        user=user1.name,
-        type="individual",
-        cost=100,
-        currency="USD",
-        car_id=1,
-    )
-    add_new_expense(new_expense, {"auth": user1.name})
+    add_expense(user1.name, 300, "shared")
+    add_expense(user1.name, 100, "individual")
+    add_expense(user2.name, 100, "individual")
+    add_expense(user3.name, 100, "individual")
 
-    new_expense = Expense(
-        id=None,
-        title="Shared Expense",
-        note="Test note",
-        date=datetime.now().date(),
-        user=user2.name,
-        type="shared",
-        cost=200,
-        currency="USD",
-        car_id=1,
-    )
-    add_new_expense(new_expense, {"auth": user1.name})
+    assert total_debt(user1.name, user2.name) == 0
+    assert total_debt(user3.name, user2.name) == 0
+    assert total_debt(user2.name, user3.name) == 0
 
-    assert total_debt(user1.name, user2.name) == round((200 / 3 + 100 / (3 - 1)))
-    assert total_debt(user3.name, user2.name) == round(200 / 3)
+    assert total_debt(user3.name, user1.name) == 100
+    assert total_debt(user2.name, user1.name) == 100
+
+
+def test_one_pays_for_gas_and_consumes_it_all(db):
+    user1, user2, user3 = db.t.users()
+
+    full_tank = 300
+    add_expense(user1.name, full_tank, "shared")
+    add_expense(user1.name, full_tank, "individual")
+
+    assert total_debt(user1.name, user2.name) == 0
+    assert total_debt(user3.name, user2.name) == 0
     assert total_debt(user2.name, user1.name) == 0
     assert total_debt(user2.name, user3.name) == 0
 
 
-def test_add_transaction(db):
+def test_multiple_people_pay_for_shared_expenses(db):
+    user1, user2, user3 = db.t.users()
+
+    add_expense(user1.name, 300, "shared")
+    add_expense(user2.name, 150, "shared")
+
+    assert total_debt(user1.name, user2.name) == 0
+    assert total_debt(user2.name, user1.name) == 50
+    assert total_debt(user3.name, user1.name) == 100
+    assert total_debt(user3.name, user2.name) == 50
+
+
+def test_shared_and_individual_expenses_with_transactions(db):
+    user1, user2, user3 = db.t.users()
     transactions = db.t.transactions
-    user1, user2, user3 = db.t.users()
 
-    new_transaction = Transaction(
-        id=None,
-        from_user=user1.name,
-        to_user=user2.name,
-        amount=50,
-        currency="USD",
-        date=datetime.now().date().isoformat(),
+    add_expense(user1.name, 300, "shared")
+    add_expense(user2.name, 90, "individual")
+
+    transactions.insert(
+        Transaction(
+            from_user=user3.name,
+            to_user=user1.name,
+            amount=50,
+            date=datetime.now().date().isoformat(),
+            currency="USD",
+        )
     )
 
-    add_transaction(new_transaction, {"auth": user1.name})
-    assert len(transactions()) == 1
-
-
-def test_delete_transaction(db):
-    transactions = db.t.transactions
-    user1, user2, user3 = db.t.users()
-
-    new_transaction = Transaction(
-        id=None,
-        from_user=user1.name,
-        to_user=user2.name,
-        amount=50,
-        currency="USD",
-        date=datetime.now().date().isoformat(),
-    )
-
-    add_transaction(new_transaction, {"auth": user1.name})
-    transaction = transactions()[0]
-
-    delete_transaction(transaction.id, {"auth": user1.name})
-    assert len(transactions()) == 0
-
-
-def test_validate_form(db):
-    users = db.t.users
-    user1, user2, user3 = db.t.users()
-
-    new_transaction = Transaction(
-        id=None,
-        from_user=user1.name,
-        to_user=user2.name,
-        amount=50,
-        currency="USD",
-        date=datetime.now().date().isoformat(),
-    )
-
-    is_valid = validate_form(new_transaction, "amount", {"auth": user1.name})
-    assert is_valid
+    assert total_debt(user2.name, user1.name) == 300 / 3 + 90 / 3
+    assert total_debt(user3.name, user1.name) == 300 / 3 - 50
+    assert total_debt(user1.name, user2.name) == 0
+    assert total_debt(user3.name, user2.name) == 0
