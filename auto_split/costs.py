@@ -27,6 +27,8 @@ def fetch_gas_price():
         print("Error: could not parse gas price", e)
         return None
 
+    if len(gas_costs) == 0:
+        return 0
     return sum(gas_costs) / len(gas_costs)
 
 

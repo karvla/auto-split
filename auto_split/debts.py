@@ -125,7 +125,7 @@ def validate_form(transaction: Transaction, input: str, sess=None):
 
 
 def debts_form(transaction: Transaction, is_valid: bool, sess):
-    currency = get_car(sess["auth"])
+    currency = get_car(sess["auth"]).currency
     users = connected_users(sess["auth"])
     return Form(
         Div(
