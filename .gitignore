@@ -6,3 +6,5 @@ data/
 *.egg-info/
 dist/
 build/
+e2e-test/node_modules
+test-results
