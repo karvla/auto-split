@@ -4,6 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEBUG = os.getenv("DEBUG", True)
 BASE_URL = os.getenv("BASE_URL", "http://localhost:5001")
+DEBUG = "localhost" in BASE_URL
 DATABASE = os.getenv("DATABASE", "data/carpool.db")

@@ -21,9 +21,8 @@ def before(req, sess):
 
 
 beforeware = Beforeware(before)
-use_live_reload = DEBUG is not None
 app, _ = fast_app(
-    live=use_live_reload,
+    live=DEBUG,
     before=beforeware,
     hdrs=(Script(src="https://unpkg.com/hyperscript.org@0.9.12"),),
 )
