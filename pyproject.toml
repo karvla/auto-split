@@ -9,14 +9,13 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "python-fasthtml==0.6.0",
+    "python-fasthtml==0.12.0",
     "requests==2.25.1",
     "fa6-icons==0.0.2",
     "ics==0.7.2",
     "fastapi==0.114.1",
     "pytest==8.3.3",
-    "sqlite-minutils>=0.1",
-    "fast-html>=1.0.11",
+    "sqlite-minutils>=0.1"
 ]
 
 [project.optional-dependencies]

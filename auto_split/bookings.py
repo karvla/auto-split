@@ -170,6 +170,13 @@ def validate_booking(booking: Booking) -> (bool, str | None):
 
 def booking_form(booking: Booking, title, post_target, sess=None):
     car = get_car(sess["auth"])
+    default_date = str(datetime.today().date())
+    if booking.distance is None:
+        booking.distance = 0
+    if booking.date_from is None:
+        booking.date_from = default_date
+    if booking.date_to is None:
+        booking.date_to = default_date
     return Page(
         title,
         Form(
@@ -216,7 +223,7 @@ def booking_form(booking: Booking, title, post_target, sess=None):
                     Input(
                         type="number",
                         name="distance",
-                        value=booking.distance,
+                        value=str(booking.distance),
                         hx_post="/bookings/cost",
                         hx_trigger="input changed",
                         hx_swap="inner_html",
@@ -246,7 +253,7 @@ def get_ride_cost(distance: int, sess=None):
 
 @app.post("/bookings/cost")
 def get_cost_description(distance: int | None, sess=None):
-    if distance is None or sess is None:
+    if distance == 0 or sess is None:
         return Br(), Br(), Br()
     c = get_car(sess["auth"])
     total = get_ride_cost(distance, sess)
