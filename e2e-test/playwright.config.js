@@ -10,6 +10,10 @@ module.exports = defineConfig({
     baseURL: 'http://localhost:5001',
     trace: 'on-first-retry',
   },
+  webServer: {
+    command: "cd ../ && make run",
+    port: 5001
+  },
   projects: [
     {
       name: 'chromium',
