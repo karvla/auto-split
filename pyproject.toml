@@ -10,10 +10,10 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "python-fasthtml==0.12.0",
-    "requests==2.32.5",
+    "requests>2.33.0",
     "fa6-icons==0.0.2",
     "ics==0.7.2",
-    "pytest==8.3.3",
+    "pytest>=9.0.3",
     "fastapi>=0.118.0",
 ]
 
