@@ -6,6 +6,7 @@ import download
 import expenses
 import login
 from app import app
+from config import DEBUG
 from db.init_db import load_database
 from fasthtml.common import RedirectResponse, serve
 
@@ -17,4 +18,4 @@ def get_home():
 
 if __name__ == "__main__":
     load_database()
-    serve()
+    serve(reload=DEBUG)

@@ -11,7 +11,11 @@ module.exports = defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: "cd ../ && make run",
+    command: "make -C .. run",
+    env: {
+      ...process.env,
+      E2E_TEST_SERVER: '1',
+    },
     port: 5001
   },
   projects: [

@@ -9,15 +9,20 @@ User = db.t.users.dataclass()
 Car = db.t.cars.dataclass()
 
 
+def clear_db(db):
+    db.conn.execute("delete from transactions")
+    db.conn.execute("delete from bookings")
+    db.conn.execute("delete from expenses")
+    db.conn.execute("delete from users")
+    db.conn.execute("delete from cars")
+
+
 @pytest.fixture(autouse=True)
 def db():
     db = load_database()
+    clear_db(db)
     db.t.cars.insert(name="test car")
     [db.t.users.insert(User(name=f"User{i}", car_id=1)) for i in range(3)]
     yield db
 
-    db.conn.execute("delete from bookings")
-    db.conn.execute("delete from expenses")
-    db.conn.execute("delete from transactions")
-    db.conn.execute("delete from users")
-    db.conn.execute("delete from cars")
+    clear_db(db)

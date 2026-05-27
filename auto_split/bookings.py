@@ -11,6 +11,7 @@ from db.init_db import load_database
 from expenses import Expense, expenses
 from fa6_icons import svgs
 from fasthtml.common import *
+from fasthtml.pico import Group
 
 db = load_database()
 bookings = db.t.bookings

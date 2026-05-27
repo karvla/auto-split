@@ -2,7 +2,7 @@ from datetime import datetime
 
 from config import DATABASE
 from db.migrations import migrations
-from fasthtml.common import database
+from fastlite import database
 
 db = None
 

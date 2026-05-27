@@ -1,6 +1,7 @@
 from app import app
 from datetime import datetime
 from db.init_db import load_database, run_db_migrations
+from fastlite import database
 from fasthtml.common import *
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
