@@ -10,11 +10,10 @@ Car = cars.dataclass()
 
 
 def connected_users(user: str):
-    return list(
-        map(
-            lambda x: next(iter(x.values())),
-            db.query(
-                """
+    return [
+        next(iter(x.values()))
+        for x in db.query(
+            """
             select name
             from users
             where car_id = (
@@ -24,14 +23,13 @@ def connected_users(user: str):
                 limit 1
             )
             """,
-                [user],
-            ),
+            [user],
         )
-    )
+    ]
 
 
 def db_fields(db_dataclass, table_name):
-    return ", ".join((f"{table_name}.{f.name}" for f in fields(db_dataclass)))
+    return ", ".join(f"{table_name}.{f.name}" for f in fields(db_dataclass))
 
 
 def get_car(user: str):

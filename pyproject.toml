@@ -42,7 +42,10 @@ pythonpath = ["auto_split"]
 profile = "black"
 
 [tool.ruff.lint]
-ignore = ["F405", "F811", "F403"]
+# DTZ002/DTZ005: the app deliberately works in the machine's local time. Booking
+# and expense dates are the user's calendar dates, not UTC instants, so making
+# them timezone-aware in UTC would shift them by a day around midnight.
+ignore = ["F405", "F811", "F403", "DTZ002", "DTZ005"]
 
 [tool.ruff.lint.per-file-ignores]
 "auto_split/main.py" = ["F401"]

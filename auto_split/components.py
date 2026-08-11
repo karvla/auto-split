@@ -1,5 +1,5 @@
-from fasthtml.common import *
 from fa6_icons import svgs
+from fasthtml.common import *
 
 
 def Icon(svg):
@@ -18,7 +18,7 @@ def Page(current_title: str, *c, **kwargs):
             A(
                 page_title,
                 href=link,
-                cls="contrast" + " outline" if page_title == page_title else "",
+                cls="contrast outline",
             )
         )
         for page_title, link in pages

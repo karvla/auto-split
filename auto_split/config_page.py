@@ -54,7 +54,7 @@ def new_config_page(sess=None):
 
 def has_access(car: Car, sess=None):
     if sess is None:
-        True
+        return True
     return users.get(sess["auth"]).car_id == car.id
 
 

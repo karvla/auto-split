@@ -16,9 +16,9 @@ User = users.dataclass()
 
 
 def get_expenses(sess):
-    return map(
-        lambda b: Expense(**b),
-        db.query(
+    return (
+        Expense(**b)
+        for b in db.query(
             f"""
     select {db_fields(Expense, "expenses")}
     from expenses
@@ -28,7 +28,7 @@ def get_expenses(sess):
     order by date desc
                         """,
             [sess["auth"]],
-        ),
+        )
     )
 
 
@@ -130,7 +130,7 @@ def add_new_expense(expense: Expense, sess=None):
 def edit_expense(expense: Expense, id: int, sess=None):
     if not has_access(expense, sess):
         return RedirectResponse("/expenses", status_code=401)
-    is_valid, msg = validate_expense(expense)
+    is_valid, _msg = validate_expense(expense)
     if not is_valid:
         return (expense_form(expense, "/expenses/edit", "Edit expense", sess),)
     expenses.update(expense)

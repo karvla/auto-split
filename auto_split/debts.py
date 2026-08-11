@@ -48,7 +48,7 @@ def debts_page(sess):
 
 def transaction_list(user: str):
     users = connected_users(user)
-    question_marks = ",".join(("?" for _ in users))
+    question_marks = ",".join("?" for _ in users)
     return Div(
         H4("Transactions"),
         current_debt(user),

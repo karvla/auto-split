@@ -1,4 +1,5 @@
-from datetime import datetime
+import sys
+from datetime import UTC, datetime
 
 from config import DATABASE
 from db.migrations import migrations
@@ -29,17 +30,16 @@ def run_db_migrations(db):
         if id in migrations_table:
             continue
         title = migration.__str__().split(" ")[1]
-        date = datetime.utcnow().ctime()
+        date = datetime.now(UTC).ctime()
         print("Running migration", title, end=" ")
         try:
             migration(db)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - any failure must stop the run
             print("FAIL:", e)
             migrations_table.insert(
                 Migration(id=id, title=title, message=e, success=False, date=date)
             )
-            exit()
-            continue
+            sys.exit()
 
         migrations_table.insert(
             Migration(id=id, title=title, message="", success=True, date=date)

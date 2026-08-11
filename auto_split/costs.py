@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-@lru_cache()
+@lru_cache
 def get_gas_price(ttl_hash=None):
     del ttl_hash
     return fetch_gas_price()
@@ -14,7 +14,7 @@ def get_gas_price(ttl_hash=None):
 def fetch_gas_price():
     url = "https://www.bensinstation.nu/Malmö/"
     result = requests.get(url)
-    if not result.status_code == 200:
+    if result.status_code != 200:
         return
 
     try:
@@ -23,7 +23,7 @@ def fetch_gas_price():
         gas_costs_cells = [c for n, c in enumerate(cells) if n % 5 == 1]
         print(gas_costs_cells)
         gas_costs = [float(c) for c in gas_costs_cells if c != ""]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - any parse failure means no price
         print("Error: could not parse gas price", e)
         return None
 

@@ -1,12 +1,13 @@
-from app import app
-from datetime import datetime
-from db.init_db import load_database, run_db_migrations
-from fastlite import database
-from fasthtml.common import *
-from fastapi.responses import FileResponse
-from starlette.background import BackgroundTask
-import tempfile
 import os
+import tempfile
+from datetime import datetime
+
+from app import app
+from db.init_db import load_database, run_db_migrations
+from fastapi.responses import FileResponse
+from fasthtml.common import *
+from fastlite import database
+from starlette.background import BackgroundTask
 
 db = load_database()
 
@@ -66,11 +67,13 @@ def download_data(sess):
         to_rows = list(db.t.transactions.rows_where("to_user = ?", [user_name]))
 
         for row in from_rows + to_rows:
-            # Only copy if both users are in our exported set
-            if row["from_user"] in user_names and row["to_user"] in user_names:
-                # Avoid duplicates
-                if not list(new_db.t.transactions.rows_where("id = ?", [row["id"]])):
-                    new_db.t.transactions.insert(db.t.transactions.dataclass()(**row))
+            # Only copy if both users are in our exported set, and avoid duplicates
+            if (
+                row["from_user"] in user_names
+                and row["to_user"] in user_names
+                and not list(new_db.t.transactions.rows_where("id = ?", [row["id"]]))
+            ):
+                new_db.t.transactions.insert(db.t.transactions.dataclass()(**row))
 
     # Close the database connection before sending
     new_db.conn.close()

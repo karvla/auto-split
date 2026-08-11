@@ -21,9 +21,9 @@ User = users.dataclass()
 
 
 def get_bookings(sess):
-    return map(
-        lambda b: Booking(**b),
-        db.query(
+    return (
+        Booking(**b)
+        for b in db.query(
             f"""
             select {db_fields(Booking, "bookings")}
             from bookings
@@ -33,7 +33,7 @@ def get_bookings(sess):
             order by date_from desc
                         """,
             [sess["auth"]],
-        ),
+        )
     )
 
 
