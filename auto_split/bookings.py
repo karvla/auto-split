@@ -61,6 +61,7 @@ def add_booking_form(sess):
             user=user_name,
             note=None,
             distance=None,
+            gas_price=None,
             car_id=user["car_id"],
         ),
         "Add booking",
@@ -71,7 +72,11 @@ def add_booking_form(sess):
 
 def booking_expense(booking: Booking, sess=None) -> Expense:
     expense_note = "\n".join(
-        [p for p in get_cost_description(booking.distance, sess) if type(p) is str]
+        [
+            p
+            for p in get_cost_description(booking.distance, booking.gas_price, sess)
+            if type(p) is str
+        ]
     )
     return Expense(
         id=None,
@@ -79,7 +84,7 @@ def booking_expense(booking: Booking, sess=None) -> Expense:
         title=f"Ride cost: {booking.note}",
         note=expense_note,
         user=booking.user,
-        cost=get_ride_cost(booking.distance, sess),
+        cost=get_ride_cost(booking.distance, booking.gas_price, sess),
         currency=get_car(sess["auth"]).currency if sess is not None else "",
         type=ExpenseType.individual,
         car_id=booking.car_id,
@@ -178,6 +183,16 @@ def booking_form(booking: Booking, title, post_target, sess=None):
         booking.date_from = default_date
     if booking.date_to is None:
         booking.date_to = default_date
+    if booking.gas_price is None:
+        booking.gas_price = round(resolved_gas_price(), 2)
+    # Both the distance and the gas price feed the preview, so either changing
+    # re-renders it. htmx posts the enclosing form, so both values are sent.
+    cost_preview = {
+        "hx_post": "/bookings/cost",
+        "hx_trigger": "input changed",
+        "hx_swap": "inner_html",
+        "hx_target": "#cost",
+    }
     return Page(
         title,
         Form(
@@ -225,17 +240,34 @@ def booking_form(booking: Booking, title, post_target, sess=None):
                         type="number",
                         name="distance",
                         value=str(booking.distance),
-                        hx_post="/bookings/cost",
-                        hx_trigger="input changed",
-                        hx_swap="inner_html",
-                        hx_target="#cost",
+                        **cost_preview,
                     ),
                     Input(value=car.distance_unit, readonly=True),
                     style="display: flex",
                 ),
             ),
+            Div(
+                Label("Gas price ", _for="gas_price"),
+                Div(
+                    Input(
+                        type="number",
+                        name="gas_price",
+                        step="0.01",
+                        min="0",
+                        value=str(booking.gas_price),
+                        required=True,
+                        **cost_preview,
+                    ),
+                    Input(value=f"{car.currency}/{car.volume_unit}", readonly=True),
+                    style="display: flex",
+                ),
+                Small("Defaults to the current price, but can be overridden."),
+            ),
             Div(id="indicator"),
-            Small(get_cost_description(booking.distance, sess), id="cost"),
+            Small(
+                get_cost_description(booking.distance, booking.gas_price, sess),
+                id="cost",
+            ),
             Button("Save"),
             hx_post=post_target,
             hx_target="#indicator",
@@ -244,21 +276,30 @@ def booking_form(booking: Booking, title, post_target, sess=None):
     )
 
 
-def get_ride_cost(distance: int, sess=None):
+def resolved_gas_price(gas_price=None) -> float:
+    """The booking's own gas price, else the current one, else 0."""
+    if gas_price is not None and gas_price != "":
+        return float(gas_price)
+    return float(costs.get_gas_price() or 0)
+
+
+def get_ride_cost(distance: int, gas_price: float | str | None = None, sess=None):
     if sess is None:
         return 0
-    cost_per_volume = float(costs.get_gas_price())
+    cost_per_volume = resolved_gas_price(gas_price)
     c = get_car(sess["auth"])
     return distance * (cost_per_volume * c.fuel_efficiency + c.cost_per_distance)
 
 
 @app.post("/bookings/cost")
-def get_cost_description(distance: int | None, sess=None):
+def get_cost_description(distance: int | None, gas_price: str | None = None, sess=None):
+    # gas_price is annotated as str since the form field can be cleared, and an
+    # empty value would fail to parse as a float. resolved_gas_price handles it.
     if distance == 0 or sess is None:
         return Br(), Br(), Br()
     c = get_car(sess["auth"])
-    total = get_ride_cost(distance, sess)
-    cost_per_volume = float(costs.get_gas_price())
+    total = get_ride_cost(distance, gas_price, sess)
+    cost_per_volume = resolved_gas_price(gas_price)
     return (
         "This ride costs distance x (gas price x fuel efficiency + fixed cost)",
         Br(),

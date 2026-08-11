@@ -1,3 +1,5 @@
+import re
+
 from db.expense_type import ExpenseType
 
 
@@ -86,6 +88,44 @@ def move_config_to_cars_table(db):
     cars.add_column("cost_per_distance", col_type=float)
 
 
+# The gas price used for a ride was only ever recorded in the expense note
+# written by get_cost_description, e.g.
+#   = 800.0 km x (16.8 SEK/l x 0.08 l / km + 0.1 SEK/km)
+_gas_price_in_note = re.compile(r"x \((\d+(?:\.\d+)?) ")
+
+
+def gas_price_from_note(note):
+    if not note:
+        return None
+    match = _gas_price_in_note.search(note)
+    return float(match.group(1)) if match else None
+
+
+def add_booking_gas_price(db):
+    bookings = db.t.bookings
+    bookings.add_column("gas_price", col_type=float)
+
+    # Recover the price each existing booking was actually charged at from its
+    # note. Reversing the cost formula would be wrong for any ride priced before
+    # the car's fuel efficiency was last changed; the note records the numbers
+    # that were in effect at the time. Bookings whose note we can't read are
+    # left null and fall back to the current gas price when read.
+    rows = db.q(
+        """
+        select bookings.id, expenses.note
+        from bookings
+        left join expenses on expenses.id = bookings.expense_id
+        """
+    )
+    for row in rows:
+        gas_price = gas_price_from_note(row["note"])
+        if gas_price is None:
+            continue
+        db.execute(
+            "update bookings set gas_price = ? where id = ?", [gas_price, row["id"]]
+        )
+
+
 migrations = [
     init_migration,
     add_expense_type,
@@ -94,4 +134,5 @@ migrations = [
     add_user_password,
     add_cars_table,
     move_config_to_cars_table,
+    add_booking_gas_price,
 ]
