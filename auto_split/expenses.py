@@ -86,7 +86,7 @@ def get_expenses_page(sess):
 
 
 @app.get("/expenses/add")
-def add_expenses_page(sess, error_msg=""):
+def add_expenses_page(sess):
     user_name = sess["auth"]
     user_car, *_ = db.t.users.rows_where("name = ?", [user_name])
     return expense_form(

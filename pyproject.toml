@@ -9,11 +9,11 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "python-fasthtml==0.14.1",
-    "fastlite==0.2.1",
+    "python-fasthtml==0.14.13",
+    "fastlite==0.2.4",
     "requests>2.33.0",
-    "fa6-icons==0.0.2",
-    "ics==0.7.2",
+    "fa6-icons==0.0.3",
+    "ics==0.7.3",
     "pytest>=9.0.3",
     "fastapi>=0.118.0",
     "urllib3>=2.7.0",
@@ -24,7 +24,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest-env==1.1.4",
+    "pytest-env==1.8.0",
 ]
 
 [build-system]
